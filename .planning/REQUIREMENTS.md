@@ -87,13 +87,36 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (to be filled by roadmapper) | | |
+| AUTH-01 | Phase 1 | Pending |
+| AUTH-02 | Phase 1 | Pending |
+| AUTH-03 | Phase 1 | Pending |
+| AUTH-04 | Phase 1 | Pending |
+| UPLD-01 | Phase 1 | Pending |
+| UPLD-02 | Phase 1 | Pending |
+| UPLD-03 | Phase 1 | Pending |
+| UPLD-04 | Phase 1 | Pending |
+| UPLD-05 | Phase 1 | Pending |
+| UPLD-06 | Phase 1 | Pending |
+| UPLD-07 | Phase 1 | Pending |
+| UPLD-08 | Phase 1 | Pending |
+| MAP-01 | Phase 2 | Pending |
+| MAP-02 | Phase 2 | Pending |
+| MAP-03 | Phase 2 | Pending |
+| MAP-04 | Phase 2 | Pending |
+| MAP-05 | Phase 2 | Pending |
+| MAP-06 | Phase 2 | Pending |
+| PLAC-01 | Phase 3 | Pending |
+| PLAC-02 | Phase 3 | Pending |
+| PLAC-03 | Phase 3 | Pending |
+| EDIT-01 | Phase 4 | Pending |
+| EDIT-02 | Phase 4 | Pending |
+| EDIT-03 | Phase 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 24 total
-- Mapped to phases: (pending roadmap)
-- Unmapped: (pending roadmap)
+- Mapped to phases: 24
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-06-17*
-*Last updated: 2026-06-17 after initial definition*
+*Last updated: 2026-06-17 after roadmap creation*
