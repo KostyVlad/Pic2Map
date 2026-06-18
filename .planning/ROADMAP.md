@@ -34,7 +34,10 @@ deletion, upload progress, and mobile polish.
   3. Uploaded photos get a thumbnail; HEIC/HEIF is converted to JPEG; served files have EXIF (incl. GPS) stripped; raw binaries are never stored in MongoDB.
   4. Opening a country shows its photos in a gallery/lightbox the user can browse.
   5. Countries that contain photos are visually marked on the map, and map tiles come from a configured free-tier provider.
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 01-01-PLAN.md — Walking Skeleton: scaffold client/server, Mongo-backed upload→view path, country map click-to-select, ingest pipeline (HEIC/EXIF/magic-byte), gallery + lightbox
+- [ ] 01-02-PLAN.md — Refinement: country hover highlight, has-photos marking + count badges, bulk upload + drag-active + full validation-error/success UX
 **UI hint**: yes
 
 ### Phase 2: Accounts & Private Maps
@@ -81,7 +84,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Country Map & Per-Country Photos | 0/TBD | Not started | - |
+| 1. Country Map & Per-Country Photos | 0/2 | Not started | - |
 | 2. Accounts & Private Maps | 0/TBD | Not started | - |
 | 3. EXIF Auto-Placement & Pins | 0/TBD | Not started | - |
 | 4. Places, Editing & Polish | 0/TBD | Not started | - |
