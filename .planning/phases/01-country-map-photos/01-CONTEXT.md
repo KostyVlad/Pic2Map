@@ -58,6 +58,13 @@ geocoding to cities, edit/move, delete, upload-progress UI, mobile polish (Phase
 - **D-08:** Opening a country shows its photos as a **thumbnail-grid gallery** with a
   lightbox for full-size viewing.
 
+### Styling
+- **D-09:** Frontend styling uses **Tailwind CSS** (user decision), configured via the
+  official Vite plugin. PhotoMap design tokens (colors, type scale) live in the Tailwind
+  theme; components use utility classes. NOT plain CSS / CSS Modules / a component library.
+  Full token + component contract is in `01-UI-SPEC.md`. Note: Leaflet polygon styles are
+  set in JS (Tailwind does not apply to Leaflet's SVG), reusing the same palette values.
+
 ### Claude's Discretion
 - Exact country-boundary data source and rendering approach (e.g. Natural Earth GeoJSON via
   a Leaflet GeoJSON layer) — see Canonical References / research flag below.

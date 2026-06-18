@@ -19,13 +19,15 @@ created: 2026-06-18
 
 | Property | Value |
 |----------|-------|
-| Tool | none |
-| Preset | not applicable |
-| Component library | none — plain React components with CSS custom properties |
+| Tool | **Tailwind CSS** (utility-first) |
+| Preset | Tailwind default theme, extended with PhotoMap design tokens |
+| Component library | none — plain React components styled with Tailwind utility classes |
 | Icon library | none in Phase 1 — use text labels for actions; Phase 4 may add Lucide |
 | Font | system-ui stack (no web font download — keeps Phase 1 lean) |
 
-**Rationale:** The MERN stack research lists no CSS framework. Shadcn/Tailwind would require adding postcss + tailwind config to the Vite project — unnecessary overhead for an MVP that establishes conventions. All design tokens are declared as CSS custom properties in a single `client/src/styles/tokens.css` file, imported once in `main.jsx`. This file is the single source of truth for all Phase 1 styling.
+**Rationale:** Styling uses **Tailwind CSS** (user decision). Tailwind integrates with Vite via the official `@tailwindcss/vite` plugin (Tailwind v4) — no separate PostCSS config needed. All PhotoMap design tokens below (spacing, type scale, colors) are declared **once** in the Tailwind theme (`@theme` block in `client/src/index.css` for Tailwind v4, or `tailwind.config.js` `theme.extend` for v3) and consumed as utility classes (e.g. `bg-accent`, `p-md`, `text-heading`). The Tailwind theme is the single source of truth for Phase 1 styling. The token tables below define the **design contract values**; the "Tailwind Configuration" section at the end maps each to its theme token + utility class.
+
+> **Note on Leaflet:** Country-polygon styling (the Map layer color table below) is applied via JavaScript style objects passed to Leaflet — Tailwind utility classes do NOT apply to Leaflet's SVG/canvas-rendered polygons. Those hex/opacity values are set directly in `styleCountry()`, using the same palette values defined in the Tailwind theme.
 
 **Font stack (body and UI):**
 ```css
@@ -36,55 +38,47 @@ font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, s
 
 ## Spacing Scale
 
-Declared values (all multiples of 4):
+Declared values (all multiples of 4). These match Tailwind's default spacing scale, so **stock Tailwind utilities are used** — no custom spacing tokens required.
 
-| Token | Value | CSS Custom Property | Usage |
-|-------|-------|---------------------|-------|
-| xs | 4px | `--space-xs` | Icon gaps, chip padding, tight inline spacing |
-| sm | 8px | `--space-sm` | Compact element spacing, input inner padding |
-| md | 16px | `--space-md` | Default element spacing, card padding |
-| lg | 24px | `--space-lg` | Section padding, panel header padding |
-| xl | 32px | `--space-xl` | Layout gaps, gallery grid gap |
-| 2xl | 48px | `--space-2xl` | Major section breaks |
-| 3xl | 64px | `--space-3xl` | Page-level vertical rhythm (rarely used) |
+| Token | Value | Tailwind utility (e.g. padding) | Usage |
+|-------|-------|---------------------------------|-------|
+| xs | 4px | `p-1` / `gap-1` | Icon gaps, chip padding, tight inline spacing |
+| sm | 8px | `p-2` / `gap-2` | Compact element spacing, input inner padding |
+| md | 16px | `p-4` / `gap-4` | Default element spacing, card padding |
+| lg | 24px | `p-6` / `gap-6` | Section padding, panel header padding |
+| xl | 32px | `p-8` / `gap-8` | Layout gaps, gallery grid gap |
+| 2xl | 48px | `p-12` | Major section breaks |
+| 3xl | 64px | `p-16` | Page-level vertical rhythm (rarely used) |
 
 Exceptions:
-- **Touch targets on mobile:** minimum 44px height for all interactive elements (upload button, gallery thumbnails, close button). This exceeds the scale — use explicit `min-height: 44px` where needed rather than a scale token.
-- **Map full-bleed:** `height: 100dvh; width: 100%` — no token, set in component CSS directly.
+- **Touch targets on mobile:** minimum 44px height for all interactive elements (upload button, gallery thumbnails, close button). Not on the 4-scale — use `min-h-11` (44px) Tailwind utility where needed.
+- **Map full-bleed:** `h-dvh w-full` (`height: 100dvh; width: 100%`).
 
 ---
 
 ## Typography
 
-Four roles, two weights. Body at 400, labels and headings at 600.
+Four roles, two weights. Body at 400, labels and headings at 600. Defined as custom Tailwind `fontSize` tokens (each bundles size + line-height).
 
-| Role | Size | Weight | Line Height | CSS Custom Property | Usage |
-|------|------|--------|-------------|---------------------|-------|
-| Body | 16px | 400 | 1.5 | `--text-body` | Gallery captions, upload instructions, error messages, general prose |
-| Label | 14px | 600 | 1.4 | `--text-label` | Button text, photo count badge, form field labels, tab labels |
-| Heading | 20px | 600 | 1.2 | `--text-heading` | Country name in panel header |
-| Display | 28px | 600 | 1.1 | `--text-display` | First-run empty state headline only |
+| Role | Size | Weight | Line Height | Tailwind class | Usage |
+|------|------|--------|-------------|----------------|-------|
+| Body | 16px | 400 | 1.5 | `text-body font-normal` | Gallery captions, upload instructions, error messages, general prose |
+| Label | 14px | 600 | 1.4 | `text-label font-semibold` | Button text, photo count badge, form field labels, tab labels |
+| Heading | 20px | 600 | 1.2 | `text-heading font-semibold` | Country name in panel header |
+| Display | 28px | 600 | 1.1 | `text-display font-semibold` | First-run empty state headline only |
 
-**CSS declarations:**
-```css
---font-size-body:    16px;
---font-size-label:   14px;
---font-size-heading: 20px;
---font-size-display: 28px;
-
---font-weight-regular:  400;
---font-weight-semibold: 600;
-
---line-height-body:    1.5;
---line-height-label:   1.4;
---line-height-heading: 1.2;
---line-height-display: 1.1;
+**Tailwind `fontSize` tokens** (see Tailwind Configuration section):
+```
+body:    ['16px', { lineHeight: '1.5' }]
+label:   ['14px', { lineHeight: '1.4' }]
+heading: ['20px', { lineHeight: '1.2' }]
+display: ['28px', { lineHeight: '1.1' }]
 ```
 
 **Rules:**
-- No other font sizes are permitted in Phase 1.
-- Do not introduce a third weight. Bold (700) and light (300) are out of scope.
-- Truncate long country names in the panel header with `text-overflow: ellipsis; white-space: nowrap; overflow: hidden` rather than wrapping.
+- No other font sizes are permitted in Phase 1 — use only `text-body`, `text-label`, `text-heading`, `text-display`.
+- Do not introduce a third weight. Only `font-normal` (400) and `font-semibold` (600). Bold (700) and light (300) are out of scope.
+- Truncate long country names in the panel header with the `truncate` utility (`text-overflow: ellipsis; white-space: nowrap; overflow: hidden`) rather than wrapping.
 
 ---
 
@@ -92,20 +86,22 @@ Four roles, two weights. Body at 400, labels and headings at 600.
 
 60/30/10 split. The map tile (Stadia `alidade_smooth`) is a neutral grey-beige — the UI chrome must not compete with the map.
 
-| Role | Hex | CSS Custom Property | Usage |
-|------|-----|---------------------|-------|
-| Dominant (60%) | `#f8f9fa` | `--color-bg` | App background behind the map, panel body background |
-| Secondary (30%) | `#ffffff` | `--color-surface` | Country side-panel surface, upload dropzone background, lightbox toolbar background |
-| Accent (10%) | `#3b82f6` | `--color-accent` | **Reserved: has-photos country polygon fill, upload CTA button, active selection ring** |
-| Accent dark | `#1d4ed8` | `--color-accent-dark` | Selected country polygon border (hover/selected state) |
-| Accent subtle | `rgba(59,130,246,0.15)` | `--color-accent-subtle` | Upload dropzone drag-active highlight, photo count badge background |
-| Neutral border | `#e5e7eb` | `--color-border` | Panel border, gallery thumbnail border, dropzone idle border |
-| Text primary | `#111827` | `--color-text` | All body copy, headings, labels |
-| Text muted | `#6b7280` | `--color-text-muted` | Empty state body copy, file count secondary text |
-| Destructive | `#dc2626` | `--color-destructive` | Not used in Phase 1 (no delete action). Reserved for Phase 4 delete confirmation. |
-| Map overlay | `rgba(0,0,0,0.4)` | `--color-overlay` | Lightbox backdrop |
+Defined as custom Tailwind `colors` tokens; consumed as `bg-*` / `text-*` / `border-*` utilities.
 
-**Accent reserved for:** has-photos country polygon fill, upload CTA button background, selected country polygon border color (`--color-accent-dark`). Never used for body text, borders, or passive states.
+| Role | Hex | Tailwind token (utility) | Usage |
+|------|-----|--------------------------|-------|
+| Dominant (60%) | `#f8f9fa` | `bg` (`bg-bg`) | App background behind the map, panel body background |
+| Secondary (30%) | `#ffffff` | `surface` (`bg-surface`) | Country side-panel surface, upload dropzone background, lightbox toolbar background |
+| Accent (10%) | `#3b82f6` | `accent` (`bg-accent`) | **Reserved: has-photos country polygon fill, upload CTA button, active selection ring** |
+| Accent dark | `#1d4ed8` | `accent-dark` (`bg-accent-dark`) | Selected country polygon border (hover/selected state) |
+| Accent subtle | `rgba(59,130,246,0.15)` | `accent-subtle` (`bg-accent-subtle`) | Upload dropzone drag-active highlight, photo count badge background |
+| Neutral border | `#e5e7eb` | `border` (`border-border`) | Panel border, gallery thumbnail border, dropzone idle border |
+| Text primary | `#111827` | `text` (`text-text`) | All body copy, headings, labels |
+| Text muted | `#6b7280` | `text-muted` (`text-text-muted`) | Empty state body copy, file count secondary text |
+| Destructive | `#dc2626` | `destructive` (`text-destructive`) | Not used in Phase 1 (no delete action). Reserved for Phase 4 delete confirmation. |
+| Map overlay | `rgba(0,0,0,0.4)` | `overlay` | Lightbox backdrop (applied via CSS override, see Lightbox) |
+
+**Accent reserved for:** has-photos country polygon fill, upload CTA button background, selected country polygon border color (`accent-dark`). Never used for body text, borders, or passive states.
 
 **Map layer colors (Leaflet polygon styles — not CSS custom properties, set in JS):**
 
@@ -178,6 +174,8 @@ Note: These values must be used in the `styleCountry()` function and `onEachFeat
 ```
 
 ---
+
+> **Token-name convention in the tables below:** references written as `--color-accent`, `--space-lg`, `--text-heading` denote the corresponding Tailwind theme token / utility class defined above and in the Tailwind Configuration section (e.g. `--color-accent` → `bg-accent`/`accent`, `--space-lg` → `p-6`/`6`, `--text-heading` → `text-heading`). They describe the design contract value, not a literal CSS custom property — apply them as Tailwind utilities.
 
 ## Component Specifications
 
@@ -342,67 +340,69 @@ Only one breakpoint is required in Phase 1. Additional breakpoints are Phase 4 p
 
 | Registry | Blocks Used | Safety Gate |
 |----------|-------------|-------------|
-| npm (standard packages) | react, react-leaflet, yet-another-react-lightbox, react-photo-album | not applicable — standard npm packages, no shadcn registry |
+| npm (standard packages) | react, react-leaflet, yet-another-react-lightbox, react-photo-album, tailwindcss, @tailwindcss/vite | not applicable — standard npm packages, no shadcn registry |
 | shadcn official | none | not applicable — shadcn not initialized |
 
-No shadcn components, no third-party registries, no blocks requiring registry vetting.
+No shadcn components, no third-party registries, no blocks requiring registry vetting. Tailwind CSS is a standard npm dev dependency configured via the official Vite plugin.
 
 ---
 
-## CSS Tokens File
+## Tailwind Configuration
 
-Executor must create `client/src/styles/tokens.css` with exactly these declarations and import it in `client/src/main.jsx`:
+Setup: install Tailwind and the Vite plugin, register the plugin in `client/vite.config.js`, and import Tailwind in `client/src/index.css` (imported once in `main.jsx`). This spec targets **Tailwind v4** (CSS-first `@theme`); if the planner pins **v3**, use the equivalent `tailwind.config.js` `theme.extend` shown below.
 
+**Tailwind v4 — `client/src/index.css`:**
 ```css
-/* PhotoMap Design Tokens — Phase 1 */
-/* Source of truth: .planning/phases/01-country-map-photos/01-UI-SPEC.md */
+@import "tailwindcss";
 
-:root {
-  /* Spacing */
-  --space-xs:  4px;
-  --space-sm:  8px;
-  --space-md:  16px;
-  --space-lg:  24px;
-  --space-xl:  32px;
-  --space-2xl: 48px;
-  --space-3xl: 64px;
+@theme {
+  /* Colors (spacing uses Tailwind's default 4px scale — no override needed) */
+  --color-bg:            #f8f9fa;
+  --color-surface:       #ffffff;
+  --color-accent:        #3b82f6;
+  --color-accent-dark:   #1d4ed8;
+  --color-accent-subtle: rgba(59, 130, 246, 0.15);
+  --color-border:        #e5e7eb;
+  --color-text:          #111827;
+  --color-text-muted:    #6b7280;
+  --color-destructive:   #dc2626;
+  --color-overlay:       rgba(0, 0, 0, 0.4);
 
-  /* Typography — sizes */
-  --font-size-body:    16px;
-  --font-size-label:   14px;
-  --font-size-heading: 20px;
-  --font-size-display: 28px;
-
-  /* Typography — weights */
-  --font-weight-regular:  400;
-  --font-weight-semibold: 600;
-
-  /* Typography — line heights */
-  --line-height-body:    1.5;
-  --line-height-label:   1.4;
-  --line-height-heading: 1.2;
-  --line-height-display: 1.1;
+  /* Type scale (size + line-height) */
+  --text-body:    16px;   --text-body--line-height:    1.5;
+  --text-label:   14px;   --text-label--line-height:   1.4;
+  --text-heading: 20px;   --text-heading--line-height: 1.2;
+  --text-display: 28px;   --text-display--line-height: 1.1;
 
   /* Font stack */
-  --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-
-  /* Colors */
-  --color-bg:           #f8f9fa;
-  --color-surface:      #ffffff;
-  --color-accent:       #3b82f6;
-  --color-accent-dark:  #1d4ed8;
-  --color-accent-subtle: rgba(59, 130, 246, 0.15);
-  --color-border:       #e5e7eb;
-  --color-text:         #111827;
-  --color-text-muted:   #6b7280;
-  --color-destructive:  #dc2626;
-  --color-overlay:      rgba(0, 0, 0, 0.4);
-
-  /* Layout */
-  --panel-width-desktop: 360px;
-  --breakpoint-mobile:   768px;
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 ```
+Tailwind v4 auto-generates utilities from `@theme`: `bg-accent`, `text-text-muted`, `border-border`, `text-heading`, etc. The default spacing scale already provides `p-1/2/4/6/8/12/16` = 4/8/16/24/32/48/64px.
+
+**Tailwind v3 alternative — `client/tailwind.config.js` `theme.extend`:**
+```js
+extend: {
+  colors: {
+    bg: '#f8f9fa', surface: '#ffffff',
+    accent: { DEFAULT: '#3b82f6', dark: '#1d4ed8', subtle: 'rgba(59,130,246,0.15)' },
+    border: '#e5e7eb',
+    text: { DEFAULT: '#111827', muted: '#6b7280' },
+    destructive: '#dc2626', overlay: 'rgba(0,0,0,0.4)',
+  },
+  fontSize: {
+    body:    ['16px', { lineHeight: '1.5' }],
+    label:   ['14px', { lineHeight: '1.4' }],
+    heading: ['20px', { lineHeight: '1.2' }],
+    display: ['28px', { lineHeight: '1.1' }],
+  },
+  fontFamily: { sans: ['system-ui','-apple-system','BlinkMacSystemFont','Segoe UI','Roboto','sans-serif'] },
+}
+```
+
+**Layout constants** (not Tailwind tokens — use arbitrary values where needed): country panel desktop width `w-[360px]`; mobile breakpoint `md:` (Tailwind default 768px) drives the split layout.
+
+**Leaflet polygon palette** (set in JS `styleCountry()`, NOT via Tailwind): reuse the same hex values — `#3b82f6` (accent), `#1d4ed8` (accent-dark), `#e5e7eb` (border), `#9ca3af`, `#374151`, `#6366f1` per the Map layer color table above.
 
 ---
 
