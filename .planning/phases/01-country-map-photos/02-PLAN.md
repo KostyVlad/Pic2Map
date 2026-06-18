@@ -25,8 +25,8 @@ user_setup: []
 
 must_haves:
   truths:
-    - "Hovering a country highlights it; moving away restores its prior state without disturbing the selected country"
-    - "Countries that contain photos are filled blue and show a photo-count pill badge at their centroid"
+    - "Hovering a country highlights it; moving away restores its prior state without disturbing the selected country (D-02)"
+    - "Countries that contain photos are filled blue and show a photo-count pill badge at their centroid (D-03)"
     - "After an upload, the country's has-photos marking and badge update without a page refresh"
     - "Uploading multiple files at once succeeds; per-file failures are reported without failing the whole batch"
     - "Invalid type / oversized / server-error uploads show the exact UI-SPEC error copy"

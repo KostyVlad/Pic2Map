@@ -66,11 +66,11 @@ user_setup:
 
 must_haves:
   truths:
-    - "Opening the app renders all ~177 country boundaries on a tiled world map"
-    - "Clicking a country selects it and opens a side panel for that country"
+    - "Opening the app renders all ~177 country boundaries on a tiled world map, styled with Tailwind CSS, with no login (single local user) (D-04, D-09)"
+    - "Clicking a country selects it and opens a side panel; photos are associated by manual country selection, no EXIF/GPS auto-placement (D-01)"
     - "Uploading a photo to a selected country stores it on disk and inserts metadata in MongoDB"
     - "An uploaded HEIC photo is converted to JPEG; served files have EXIF/GPS stripped"
-    - "The selected country's gallery shows the uploaded photo's thumbnail, openable in a lightbox"
+    - "The selected country's gallery shows the uploaded photo's thumbnail in a grid, openable in a lightbox (D-08)"
     - "Photo binaries are never stored in MongoDB — only storage keys and metadata"
   artifacts:
     - path: "client/src/components/WorldMap.jsx"
