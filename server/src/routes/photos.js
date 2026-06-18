@@ -1,7 +1,190 @@
-// Photos router — implemented in Task 3
-// Placeholder so app.js can import it during scaffolding.
+/**
+ * /api/photos router
+ *
+ * POST /api/photos       — upload one or more photos to a country
+ * GET  /api/photos       — list photos for a country (?countryCode=XX)
+ * GET  /api/photos/file/:key — stream a stored file (display or thumbnail)
+ */
+
 import { Router } from 'express';
+import fs from 'node:fs/promises';
+import fsSync from 'node:fs';
+import path from 'node:path';
+import { randomUUID } from 'node:crypto';
+import { upload, validateMagicBytes } from '../middleware/upload.js';
+import { ingestPhoto } from '../services/ingest.js';
+import { storage } from '../services/storage/index.js';
+import Photo from '../models/Photo.js';
+import config from '../config.js';
 
 const router = Router();
+
+// ---------------------------------------------------------------------------
+// Ensure tmp/ directory exists before first upload
+// ---------------------------------------------------------------------------
+async function ensureTmpDir() {
+  const tmpDir = path.join(config.STORAGE_PATH, 'tmp');
+  await fs.mkdir(tmpDir, { recursive: true });
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/photos
+// ---------------------------------------------------------------------------
+router.post('/', upload.array('photos', config.MAX_FILES_PER_BATCH), async (req, res, next) => {
+  try {
+    await ensureTmpDir();
+
+    const { countryCode, countryName } = req.body;
+    if (!countryCode) {
+      // Clean up any files that landed before the error
+      if (req.files) {
+        await Promise.all(req.files.map(f => fs.unlink(f.path).catch(() => {})));
+      }
+      return res.status(400).json({ error: 'countryCode required' });
+    }
+
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'At least one file is required' });
+    }
+
+    const results = [];
+    const normalizedCode = countryCode.toUpperCase().trim();
+
+    for (const file of req.files) {
+      let rawBuffer;
+      try {
+        rawBuffer = await fs.readFile(file.path);
+      } catch (readErr) {
+        results.push({ file: file.originalname, error: 'Failed to read uploaded file' });
+        continue;
+      }
+
+      // Magic-byte validation (T-01-MAL) — check AFTER multer writes, per-file
+      let detectedMime;
+      try {
+        detectedMime = await validateMagicBytes(rawBuffer);
+      } catch (magicErr) {
+        // Unlink the tmp file — don't leave invalid files around
+        await fs.unlink(file.path).catch(() => {});
+        results.push({ file: file.originalname, error: magicErr.message });
+        continue;
+      }
+
+      // Run the ingest pipeline (HEIC conversion + resize + EXIF strip)
+      let thumbBuffer, displayBuffer;
+      try {
+        ({ thumbBuffer, displayBuffer } = await ingestPhoto(rawBuffer, detectedMime, normalizedCode));
+      } catch (ingestErr) {
+        await fs.unlink(file.path).catch(() => {});
+        results.push({ file: file.originalname, error: `Image processing failed: ${ingestErr.message}` });
+        continue;
+      }
+
+      // Write processed files to storage (UUID keys — T-01-PT)
+      const photoId = randomUUID();
+      const storageKey = `${photoId}-display.jpg`;
+      const thumbnailKey = `${photoId}-thumb.jpg`;
+
+      try {
+        await storage.put(storageKey, displayBuffer, 'image/jpeg');
+        await storage.put(thumbnailKey, thumbBuffer, 'image/jpeg');
+      } catch (storageErr) {
+        await fs.unlink(file.path).catch(() => {});
+        results.push({ file: file.originalname, error: 'Storage write failed' });
+        continue;
+      }
+
+      // Clean up tmp file
+      await fs.unlink(file.path).catch(() => {});
+
+      // Persist metadata in MongoDB — never binary data (PHOTO-05 / T-01-BIN)
+      const photo = await Photo.create({
+        countryCode: normalizedCode,
+        countryName: countryName || '',
+        storageKey,
+        thumbnailKey,
+        mimeType: 'image/jpeg',      // always JPEG after ingest pipeline
+        originalFilename: file.originalname,
+        fileSize: rawBuffer.length,
+      });
+
+      const thumbnailUrl = await storage.getUrl(thumbnailKey);
+      results.push({ photoId: photo._id, thumbnailUrl });
+    }
+
+    const uploaded = results.filter(r => !r.error).length;
+    res.status(201).json({ uploaded, results });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/photos?countryCode=XX
+// ---------------------------------------------------------------------------
+router.get('/', async (req, res, next) => {
+  try {
+    const { countryCode } = req.query;
+    if (!countryCode) {
+      return res.status(400).json({ error: 'countryCode query parameter required' });
+    }
+
+    const photos = await Photo.find({ countryCode: countryCode.toUpperCase() })
+      .sort({ createdAt: -1 })
+      .select('_id storageKey thumbnailKey originalFilename countryCode countryName createdAt');
+
+    res.json(photos);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/photos/file/:key
+// Stream a stored file (display copy or thumbnail)
+// Path-traversal guard: resolved path must stay within STORAGE_PATH (T-01-PT)
+// ---------------------------------------------------------------------------
+router.get('/file/:key', async (req, res, next) => {
+  try {
+    const key = decodeURIComponent(req.params.key);
+
+    // UUID-only keys should never contain path separators, but guard anyway
+    const localPath = storage.getLocalPath(key);
+    const resolvedPath = path.resolve(localPath);
+    const resolvedBase = path.resolve(config.STORAGE_PATH);
+
+    // Ensure the resolved path stays inside STORAGE_PATH (T-01-PT)
+    if (!resolvedPath.startsWith(resolvedBase + path.sep) && resolvedPath !== resolvedBase) {
+      return res.status(400).json({ error: 'Invalid file key' });
+    }
+
+    // Check file exists
+    try {
+      await fs.access(resolvedPath);
+    } catch {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    // Determine content-type from file extension (all served files are JPEG post-ingest)
+    const ext = path.extname(resolvedPath).toLowerCase();
+    const contentType = ext === '.png' ? 'image/png'
+      : ext === '.webp' ? 'image/webp'
+      : 'image/jpeg'; // default for .jpg and converted HEIC
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); // 1 year — content-addressed keys
+
+    // Stream the file — served files are already EXIF-stripped by ingest (PHOTO-02 / T-01-EXIF)
+    const stream = fsSync.createReadStream(resolvedPath);
+    stream.on('error', (streamErr) => {
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'File read error' });
+      }
+    });
+    stream.pipe(res);
+  } catch (err) {
+    next(err);
+  }
+});
 
 export default router;
