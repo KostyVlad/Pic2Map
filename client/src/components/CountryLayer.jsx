@@ -1,51 +1,47 @@
 /**
- * CountryLayer — renders all Natural Earth country polygons as a Leaflet GeoJSON layer.
+ * CountryLayer — renders Natural Earth country/subunit polygons as a Leaflet GeoJSON layer.
  *
  * Interaction contract (UI-SPEC Map Interaction Contract):
  *  - Default no-photos: fillColor #e5e7eb, fillOpacity 0.2, border #9ca3af weight 1
  *  - Default has-photos: fillColor #3b82f6, fillOpacity 0.45, border #9ca3af weight 1
  *  - Hover (any): increase fillOpacity to 0.65, border #374151 weight 2
+ *    Fix 1: mouseout MUST reset to the correct base style (not a hardcoded default).
+ *    The selected country keeps its selected style on mouseout — only non-selected revert.
  *  - Selected: fillColor #3b82f6, fillOpacity 0.75, border #1d4ed8 weight 3
  *  - Selected no-photos: fillColor #6366f1, fillOpacity 0.6, border #1d4ed8 weight 3
  *
  * Key architectural pattern (Pitfall 3):
- *  The react-leaflet <GeoJSON> style prop is NOT reactive to state changes.
- *  Styling must go through layer.setStyle() imperatively (onEachFeature handlers)
- *  or via full re-mount (key prop change when photoCounts changes — see WorldMap.jsx).
+ *  react-leaflet <GeoJSON> style prop is NOT reactive. Re-mount via key when photoCounts
+ *  changes (see WorldMap.jsx).
  *
  * Stale-closure fix (Pitfall 5 / RESEARCH Pattern 1):
- *  Leaflet event handlers run outside React's render cycle — they capture state at
- *  mount time. selectedLayerRef / hoveredLayerRef track the mutable layer references
- *  so click/mouseout can always find the correct layer without stale closures.
+ *  Leaflet event handlers run outside React. selectedLayerRef / hoveredLayerRef are
+ *  useRef values so handlers always see current state without stale closures.
+ *
+ * Fix 2/3: uses the 10m map_subunits GeoJSON + SU_A3 subunit key via extractIso()
+ *  so small islands (Dominica) are clickable and overseas territories (French Guiana)
+ *  are distinct from their parent country (France).
  */
 
 import { GeoJSON } from 'react-leaflet';
 import { useRef } from 'react';
-
-// Client-side ISO extraction (mirrors server utils/isoCode.js — kept in sync manually)
-function extractIso(feature) {
-  const p = feature.properties;
-  if (p.ISO_A2 && p.ISO_A2 !== '-99') return p.ISO_A2.toUpperCase();
-  if (p.ISO_A2_EH && p.ISO_A2_EH !== '-99') return p.ISO_A2_EH.toUpperCase();
-  if (p.ISO_A3 && p.ISO_A3 !== '-99') return p.ISO_A3.slice(0, 2).toUpperCase();
-  return (p.NAME || 'XX').replace(/\s+/g, '_').toUpperCase();
-}
+import { extractIso } from '../utils/isoCode.js';
 
 // Map layer color table — from UI-SPEC "Map layer colors (Leaflet polygon styles)"
 const STYLE = {
-  DEFAULT_NO_PHOTOS: { color: '#9ca3af', weight: 1, fillColor: '#e5e7eb', fillOpacity: 0.2 },
+  DEFAULT_NO_PHOTOS:  { color: '#9ca3af', weight: 1, fillColor: '#e5e7eb', fillOpacity: 0.2 },
   DEFAULT_HAS_PHOTOS: { color: '#9ca3af', weight: 1, fillColor: '#3b82f6', fillOpacity: 0.45 },
-  HOVER:    { color: '#374151', weight: 2, fillOpacity: 0.65 },
-  SELECTED: { color: '#1d4ed8', weight: 3, fillColor: '#3b82f6', fillOpacity: 0.75 },
+  HOVER:              { color: '#374151', weight: 2, fillOpacity: 0.65 },
+  SELECTED:           { color: '#1d4ed8', weight: 3, fillColor: '#3b82f6', fillOpacity: 0.75 },
   SELECTED_NO_PHOTOS: { color: '#1d4ed8', weight: 3, fillColor: '#6366f1', fillOpacity: 0.6 },
 };
 
 /**
  * @param {object} props
  * @param {object} props.countriesGeoJSON - The full GeoJSON FeatureCollection
- * @param {Map<string, number>} props.photoCounts - Map<isoCode, count>
- * @param {string|null} props.selectedCode - Currently selected ISO code
- * @param {function(string, string): void} props.onCountryClick - (isoCode, name) => void
+ * @param {Map<string, number>} props.photoCounts - Map<subunitCode, count>
+ * @param {string|null} props.selectedCode - Currently selected subunit code
+ * @param {function(string, string): void} props.onCountryClick - (subunitCode, name) => void
  */
 export default function CountryLayer({ countriesGeoJSON, photoCounts, selectedCode, onCountryClick }) {
   const hoveredLayerRef = useRef(null);
@@ -53,10 +49,18 @@ export default function CountryLayer({ countriesGeoJSON, photoCounts, selectedCo
   const selectedCodeRef = useRef(selectedCode);
   selectedCodeRef.current = selectedCode;
 
+  // Returns the base (non-hover, non-selected) style for a feature
   function getBaseStyle(feature) {
     const code = extractIso(feature);
     const hasPhotos = photoCounts.has(code) && photoCounts.get(code) > 0;
     return hasPhotos ? { ...STYLE.DEFAULT_HAS_PHOTOS } : { ...STYLE.DEFAULT_NO_PHOTOS };
+  }
+
+  // Returns the selected style for a feature
+  function getSelectedStyle(feature) {
+    const code = extractIso(feature);
+    const hasPhotos = photoCounts.has(code) && photoCounts.get(code) > 0;
+    return hasPhotos ? { ...STYLE.SELECTED } : { ...STYLE.SELECTED_NO_PHOTOS };
   }
 
   function onEachFeature(feature, layer) {
@@ -75,34 +79,41 @@ export default function CountryLayer({ countriesGeoJSON, photoCounts, selectedCo
     layer.on({
       mouseover(e) {
         const l = e.target;
-        // Don't override selected style
+        // Don't override selected style — only non-selected countries get hover effect
         if (l !== selectedLayerRef.current) {
+          // Apply hover overlay on top of the current base style
           const base = getBaseStyle(feature);
           l.setStyle({ ...base, ...STYLE.HOVER });
         }
         l.bringToFront();
         hoveredLayerRef.current = l;
       },
+
       mouseout(e) {
+        // Fix 1: reset to the CORRECT base style (default/has-photos) — not a hardcoded fallback.
+        // The selected country keeps its selected style on mouseout.
         const l = e.target;
         if (l !== selectedLayerRef.current) {
+          // Restore exact base style: has-photos blue or no-photos grey
           l.setStyle(getBaseStyle(feature));
         }
+        // If this IS the selected layer, leave its selected style untouched
         hoveredLayerRef.current = null;
       },
+
       click(e) {
-        // Deselect previous selection
+        // Deselect previous selection — restore its base style
         if (selectedLayerRef.current && selectedLayerRef.current !== e.target) {
           const prevFeature = selectedLayerRef.current.feature;
           selectedLayerRef.current.setStyle(getBaseStyle(prevFeature));
         }
         const l = e.target;
-        const hasPhotos = photoCounts.has(code) && photoCounts.get(code) > 0;
-        l.setStyle(hasPhotos ? { ...STYLE.SELECTED } : { ...STYLE.SELECTED_NO_PHOTOS });
+        l.setStyle(getSelectedStyle(feature));
         l.bringToFront();
         selectedLayerRef.current = l;
         onCountryClick(code, name);
       },
+
       keydown(e) {
         if (e.originalEvent.key === 'Enter' || e.originalEvent.key === ' ') {
           layer.fire('click', e);
