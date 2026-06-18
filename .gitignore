@@ -1,4 +1,28 @@
+# Secrets / local config
 .env
+.env.*
+!.env.example
 .claude
-.planning
-CLAUDE.md
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+build/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Uploaded photo files (served from disk via StorageAdapter; not committed)
+uploads/
+
+# OS / editor
+.DS_Store
+*.local
