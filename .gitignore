@@ -22,6 +22,7 @@ pnpm-debug.log*
 
 # Uploaded photo files (served from disk via StorageAdapter; not committed)
 uploads/
+server/uploads/
 
 # OS / editor
 .DS_Store
