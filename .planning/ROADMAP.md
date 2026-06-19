@@ -17,7 +17,7 @@ deletion, upload progress, and mobile polish.
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 1: Country Map & Per-Country Photos** - Interactive country-boundary map; click a country to upload and view its photos (no accounts)
+- [x] **Phase 1: Country Map & Per-Country Photos** - Interactive country-boundary map; click a country to upload and view its photos (no accounts) (completed 2026-06-19)
 - [ ] **Phase 2: Accounts & Private Maps** - Sign up/login/logout, per-user data isolation, migrate to private maps
 - [ ] **Phase 3: EXIF Auto-Placement & Pins** - Read GPS on upload, auto-assign country, pins inside countries with clustering
 - [ ] **Phase 4: Places, Editing & Polish** - Reverse-geocoded cities, edit/move, delete, upload progress, mobile polish
@@ -40,8 +40,8 @@ deletion, upload progress, and mobile polish.
 
 **Plans**: 2 plansPlans:
 
-- [ ] 01-01-PLAN.md — Walking Skeleton: scaffold client/server, Mongo-backed upload→view path, country map click-to-select, ingest pipeline (HEIC/EXIF/magic-byte), gallery + lightbox
-- [ ] 01-02-PLAN.md — Refinement: country hover highlight, has-photos marking + count badges, bulk upload + drag-active + full validation-error/success UX
+- [x] 01-01-PLAN.md — Walking Skeleton: scaffold client/server, Mongo-backed upload→view path, country map click-to-select, ingest pipeline (HEIC/EXIF/magic-byte), gallery + lightbox
+- [x] 01-02-PLAN.md — Refinement: country hover highlight, has-photos marking + count badges, bulk upload + drag-active + full validation-error/success UX
 
 **UI hint**: yes
 
@@ -98,7 +98,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Country Map & Per-Country Photos | 0/2 | Not started | - |
+| 1. Country Map & Per-Country Photos | 2/2 | Complete   | 2026-06-19 |
 | 2. Accounts & Private Maps | 0/TBD | Not started | - |
 | 3. EXIF Auto-Placement & Pins | 0/TBD | Not started | - |
 | 4. Places, Editing & Polish | 0/TBD | Not started | - |
