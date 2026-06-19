@@ -47,16 +47,17 @@ deletion, upload progress, and mobile polish.
 
 ### Phase 2: Accounts & Private Maps
 
-**Goal**: Users can sign up, log in, and log out, and every country and photo is scoped to its owner so each user has a private map — with the Phase 1 data model migrated to per-user ownership.
+**Goal**: Users can sign up, log in, log out, and reset a forgotten password by email; every country and photo is scoped to its owner so each user has a private map. Unauthenticated visitors see only a login/signup screen; pre-auth test data is cleared (fresh start) and `userId` becomes required.
 **Mode:** mvp
 **Depends on**: Phase 1
-**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04
+**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05
 **Success Criteria** (what must be TRUE):
 
-  1. User can sign up with email/password, log in, stay logged in across a browser refresh, and log out — session via httpOnly JWT cookie.
+  1. User can sign up with email/password, log in, stay logged in across a browser refresh (longer with "Remember me"), and log out — session via httpOnly JWT cookie.
   2. Passwords are stored hashed (argon2id); credentials are never stored in plaintext.
-  3. Every country/photo query is scoped to the authenticated user — one user cannot view or modify another user's photos.
-  4. Existing Phase 1 photos/countries are migrated under a user account rather than lost.
+  3. Every country/photo query (incl. file serving) is scoped to the authenticated user — one user cannot view or modify another user's photos.
+  4. Unauthenticated visitors see only the login/signup page; pre-auth (userId=null) test data is cleared and new accounts start with an empty map.
+  5. A user who forgets their password can request a reset link by email and set a new password.
 
 **Plans**: TBD
 
