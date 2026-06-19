@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import { requireAuth } from './middleware/auth.js';
 import authRouter from './routes/auth.js';
 import photosRouter from './routes/photos.js';
 import countriesRouter from './routes/countries.js';
@@ -19,10 +20,10 @@ app.use(cookieParser());
 // JSON body parsing
 app.use(express.json());
 
-// API routes — auth routes are public (no requireAuth); mounted before other routes
+// API routes — auth routes are public (no requireAuth); data routes are protected
 app.use('/api/auth', authRouter);
-app.use('/api/photos', photosRouter);
-app.use('/api/countries', countriesRouter);
+app.use('/api/photos', requireAuth, photosRouter);
+app.use('/api/countries', requireAuth, countriesRouter);
 
 // 404 handler
 app.use((req, res) => {

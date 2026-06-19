@@ -98,6 +98,7 @@ router.post('/', upload.array('photos', config.MAX_FILES_PER_BATCH), async (req,
       await fs.unlink(file.path).catch(() => {});
 
       // Persist metadata in MongoDB — never binary data (PHOTO-05 / T-01-BIN)
+      // userId from requireAuth middleware scopes the photo to the authenticated user (D-03)
       const photo = await Photo.create({
         countryCode: normalizedCode,
         countryName: countryName || '',
@@ -106,6 +107,7 @@ router.post('/', upload.array('photos', config.MAX_FILES_PER_BATCH), async (req,
         mimeType: 'image/jpeg',      // always JPEG after ingest pipeline
         originalFilename: file.originalname,
         fileSize: rawBuffer.length,
+        userId: req.userId,
       });
 
       const thumbnailUrl = await storage.getUrl(thumbnailKey);
@@ -129,7 +131,8 @@ router.get('/', async (req, res, next) => {
       return res.status(400).json({ error: 'countryCode query parameter required' });
     }
 
-    const photos = await Photo.find({ countryCode: countryCode.toUpperCase() })
+    // Scope to authenticated user (AUTH-04 / D-03) — only the owner's photos are returned
+    const photos = await Photo.find({ countryCode: countryCode.toUpperCase(), userId: req.userId })
       .sort({ createdAt: -1 })
       .select('_id storageKey thumbnailKey originalFilename countryCode countryName createdAt');
 
@@ -158,7 +161,17 @@ router.get('/file/:key', async (req, res, next) => {
       return res.status(400).json({ error: 'Invalid file key' });
     }
 
-    // Check file exists
+    // Ownership check (IDOR close — T-02-IDOR-FILE, Pitfall 1)
+    // Match either display or thumbnail key; return 404 not 403 — no existence leak
+    const owned = await Photo.findOne({
+      $or: [{ storageKey: key }, { thumbnailKey: key }],
+      userId: req.userId,
+    });
+    if (!owned) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    // Check file exists on disk
     try {
       await fs.access(resolvedPath);
     } catch {

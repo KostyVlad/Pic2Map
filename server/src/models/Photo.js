@@ -5,7 +5,7 @@ import mongoose from 'mongoose';
  *
  * Design: forward-compatible for Phases 2 and 3.
  * - countryCode (Phase 1): stable ISO 3166-1 alpha-2 key, keyed by extractIso()
- * - userId (Phase 2): nullable ObjectId reference — Phase 1 leaves null; Phase 2 migration sets it
+ * - userId (Phase 2): required ObjectId reference — every photo belongs to an authenticated user
  * - location / geocodeStatus (Phase 3): GPS point + status — reserved null until EXIF auto-placement
  *
  * Storage rule: binaries NEVER in this document. Only storageKey and thumbnailKey paths.
@@ -22,11 +22,11 @@ const photoSchema = new mongoose.Schema(
       index: true, // fast per-country photo queries
     },
 
-    // Phase 2 — added via migration when auth is built; null in Phase 1
+    // Phase 2 — required now that pre-auth (userId=null) data has been migrated (D-01)
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      default: null,
+      required: true,
       index: true,
     },
 
@@ -56,7 +56,9 @@ const photoSchema = new mongoose.Schema(
 // Phase 1 compound index: per-country photo list sorted by most-recent
 photoSchema.index({ countryCode: 1, createdAt: -1 });
 
-// Phase 2 will add: { userId: 1, countryCode: 1 } compound index via migration
+// Phase 2 compound index: per-user per-country photo list (AUTH-04)
+photoSchema.index({ userId: 1, countryCode: 1 });
+
 // Phase 3 will add: { location: '2dsphere' } index via migration
 
 export default mongoose.model('Photo', photoSchema);

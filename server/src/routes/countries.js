@@ -5,6 +5,7 @@
  */
 
 import { Router } from 'express';
+import mongoose from 'mongoose';
 import Photo from '../models/Photo.js';
 
 const router = Router();
@@ -14,12 +15,13 @@ const router = Router();
 // Returns an object map: { "US": 12, "FR": 8, ... }
 // Used by the frontend to colour country polygons (CMAP-04)
 //
-// Phase 2: add { $match: { userId: req.userId } } before $group
+// Phase 2: scoped to req.userId (AUTH-04 / D-03). Cast string userId to ObjectId —
+// aggregate $match does NOT auto-cast strings (Pitfall 6).
 // ---------------------------------------------------------------------------
 router.get('/photo-counts', async (req, res, next) => {
   try {
     const counts = await Photo.aggregate([
-      // Phase 2: add { $match: { userId: req.userId } } here for per-user isolation
+      { $match: { userId: new mongoose.Types.ObjectId(req.userId) } },
       { $group: { _id: '$countryCode', count: { $sum: 1 } } },
       { $project: { _id: 0, countryCode: '$_id', count: 1 } },
     ]);
