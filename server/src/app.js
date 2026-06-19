@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import authRouter from './routes/auth.js';
 import photosRouter from './routes/photos.js';
 import countriesRouter from './routes/countries.js';
 
@@ -18,7 +19,8 @@ app.use(cookieParser());
 // JSON body parsing
 app.use(express.json());
 
-// API routes
+// API routes — auth routes are public (no requireAuth); mounted before other routes
+app.use('/api/auth', authRouter);
 app.use('/api/photos', photosRouter);
 app.use('/api/countries', countriesRouter);
 
