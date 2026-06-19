@@ -60,11 +60,17 @@ deletion, upload progress, and mobile polish.
   5. A user who forgets their password can request a reset link by email and set a new password.
 
 **Plans**: 3 plans
-
 Plans:
+**Wave 1**
 
 - [ ] 02-01-PLAN.md — Backend auth foundation: User model, jose JWT + argon2id, requireAuth, signup/login/logout/me + rate limiting (AUTH-01/02/03)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 02-02-PLAN.md — Private maps: userId scoping + IDOR fix on all data routes, fresh-start migration, client login/signup gating + AccountStrip (AUTH-04)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 02-03-PLAN.md — Password reset: email adapter (Resend), forgot/reset endpoints (hashed single-use token), forgot/reset screens (AUTH-05)
 
 **UI hint**: yes
