@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 2 planned (3 plans, verified) — ready to execute
-stopped_at: Phase 2 planned — ready to execute (/gsd-execute-phase 2)
-last_updated: "2026-06-19T20:36:02.341Z"
-last_activity: 2026-06-18 -- Phase 1 Plan 1 tasks 1-5 committed; checkpoint reached
+status: checkpoint
+stopped_at: "02-01 Task 4: supply-chain + JWT_SECRET checkpoint (blocking)"
+last_updated: "2026-06-19T20:45:44Z"
+last_activity: "2026-06-19 -- Phase 2 Plan 01 paused at human checkpoint (Tasks 1-3 complete)"
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 2
+  total_plans: 5
   completed_plans: 2
   percent: 25
 ---
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-17)
 
 **Core value:** Browse your travels on a world map organized by the countries you've visited — click a country to add and view its photos — with photos auto-placing by GPS over time.
-**Current focus:** Phase 1 — country-map-photos
+**Current focus:** Phase 2 — accounts-private-maps
 
 ## Current Position
 
-Phase: 1 (country-map-photos) — EXECUTING
-Plan: 1 of 2 (Tasks 1-5 complete; stopped at Task 6 blocking checkpoint)
-Status: Awaiting human checkpoint — package legitimacy review + MONGODB_URI setup + skeleton smoke test
-Last activity: 2026-06-18 -- Phase 1 Plan 1 tasks 1-5 committed; checkpoint reached
+Phase: 2 (accounts-private-maps) — CHECKPOINT
+Plan: 1 of 3 (Tasks 1-3 committed; paused at Task 4 blocking human checkpoint)
+Status: Awaiting human: supply-chain package verification + JWT_SECRET in server/.env
+Last activity: 2026-06-19 -- Phase 2 Plan 01 Tasks 1-3 committed; paused at checkpoint
 
-Progress: [░░░░░░░░░░] 0% (plan not marked complete until checkpoint cleared)
+Progress: [##░░░░░░░░] 25% (checkpoint at 02-01 Task 4)
 
 ## Performance Metrics
 
@@ -67,6 +67,7 @@ Recent decisions affecting current work:
 - Phase 3: react-leaflet v5 ↔ React 19 hard pairing; use-supercluster for clustering; auto-assign country from GPS by point-in-polygon.
 - Phase 4: Nominatim geocoding must run async (≤1 req/s) — never inline with upload or it IP-bans the app.
 - Phase 1 Plan 1: Backend ESM ("type":"module") for file-type v22 compatibility. sharp.withMetadata(false) retains EXIF in 0.34.5 — omit the call entirely to strip (see ingest.js comments). CountryLayer key prop forces re-mount on photoCounts change (Pitfall 3 fix).
+- Phase 2 Plan 1: Signup 400 "Email already registered" IS intentional (UI-SPEC accepts enumeration on signup). Login always returns identical 401 (T-02-ENUM). COOKIE_SECURE=false in dev (Pitfall 3). clearCookie options must match setAuthCookie options or browser won't clear.
 
 ### Pending Todos
 
@@ -87,6 +88,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-19T07:19:19.592Z
-Stopped at: Phase 2 UI-SPEC approved
-Resume file: .planning/phases/02-accounts-private-maps/02-UI-SPEC.md
+Last session: 2026-06-19T20:45:44Z
+Stopped at: 02-01 Task 4 — blocking human checkpoint (supply-chain + JWT_SECRET)
+Resume file: .planning/phases/02-accounts-private-maps/02-01-PLAN.md (Task 4 onward)

@@ -114,6 +114,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Country Map & Per-Country Photos | 2/2 | Complete   | 2026-06-19 |
-| 2. Accounts & Private Maps | 0/3 | Planned | - |
+| 2. Accounts & Private Maps | 0/3 | Executing (02-01 at checkpoint) | - |
 | 3. EXIF Auto-Placement & Pins | 0/TBD | Not started | - |
 | 4. Places, Editing & Polish | 0/TBD | Not started | - |
