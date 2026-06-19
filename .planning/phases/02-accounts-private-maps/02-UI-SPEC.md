@@ -91,7 +91,7 @@ Identical to Phase 1 palette. No new tokens. The auth card sits on the app backg
 | Text muted | `#6b7280` | `text-muted` (`text-text-muted`) | Helper text, secondary links, instructions |
 | Destructive | `#dc2626` | `destructive` (`text-destructive` / `border-destructive`) | Field validation errors, wrong-credentials error |
 
-**Accent reserved for:** submit button background, active input focus ring. Never used for body text, borders, or passive states.
+**Accent reserved for:** submit button background, active input focus ring, inline text links. Never used for body text, borders, or passive states.
 
 Source: Phase 1 UI-SPEC.md (reused verbatim, extended with auth-specific usage notes).
 

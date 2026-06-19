@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Awaiting human checkpoint — package legitimacy review + MONGODB_URI setup + skeleton smoke test
-stopped_at: Phase 2 context gathered (auth + fresh-start + password reset)
-last_updated: "2026-06-19T07:09:59.499Z"
+stopped_at: Phase 2 UI-SPEC approved
+last_updated: "2026-06-19T07:19:19.604Z"
 last_activity: 2026-06-18 -- Phase 1 Plan 1 tasks 1-5 committed; checkpoint reached
 progress:
   total_phases: 4
@@ -87,6 +87,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-19T07:09:59.486Z
-Stopped at: Phase 2 context gathered (auth + fresh-start + password reset)
-Resume file: .planning/phases/02-accounts-private-maps/02-CONTEXT.md
+Last session: 2026-06-19T07:19:19.592Z
+Stopped at: Phase 2 UI-SPEC approved
+Resume file: .planning/phases/02-accounts-private-maps/02-UI-SPEC.md
