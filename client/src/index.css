@@ -1,4 +1,10 @@
 @import "tailwindcss";
+/* Third-party CSS must be imported BEFORE any other rules (@import must precede @theme,
+   selectors, etc. or browsers/bundlers drop it). Importing after "tailwindcss" (unlayered)
+   also lets Leaflet/lightbox styles win over Tailwind's layered preflight reset — this is
+   what keeps the Leaflet zoom +/- controls from rendering broken. */
+@import "leaflet/dist/leaflet.css";
+@import "yet-another-react-lightbox/styles.css";
 
 @theme {
   /* Colors (spacing uses Tailwind's default 4px scale — no override needed) */
@@ -23,13 +29,17 @@
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* Leaflet CSS */
-@import "leaflet/dist/leaflet.css";
-
-/* Yet Another React Lightbox */
-@import "yet-another-react-lightbox/styles.css";
-
 /* Lightbox backdrop override — lighten to 0.4 per UI-SPEC */
 .yarl__backdrop {
   background: rgba(0, 0, 0, 0.4);
+}
+
+/* Leaflet zoom controls: Leaflet sets `font: 700 18px Lucida Console, monospace`, but
+   Lucida Console (Windows default monospace) lacks the U+2212 minus glyph Leaflet uses for
+   the zoom-out button → it renders as a gray "tofu" triangle. Force a system font that has
+   both + and − glyphs. */
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+  font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  font-weight: 700;
 }
