@@ -8,7 +8,7 @@
  *  - Uploading state: button disabled + "Uploading..." text
  *
  * Phase 1 scope: happy-path single/basic upload must work.
- * Phase 2 deferred: drag-active zone highlight, multi-error toasts, full error copy.
+ * Phase 2: drag-active zone highlight, multi-error reporting, full error copy.
  *
  * @param {object} props
  * @param {string} props.countryCode - ISO code of selected country
@@ -21,14 +21,16 @@ import { useUploadPhotos } from '../api/photos.js';
 export default function PhotoUploadForm({ countryCode, countryName }) {
   const inputRef = useRef(null);
   const [statusMessage, setStatusMessage] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
   const uploadMutation = useUploadPhotos();
 
-  async function handleFileChange(e) {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
+  // Shared upload path for both the file picker and drag-and-drop.
+  async function uploadFiles(files) {
+    if (!files || files.length === 0) return;
 
     setStatusMessage(null);
 
+    let succeeded = true;
     try {
       const result = await uploadMutation.mutateAsync({ files, countryCode, countryName });
       const n = result.uploaded;
@@ -40,12 +42,14 @@ export default function PhotoUploadForm({ countryCode, countryName }) {
       // Check for per-file errors in results
       const errors = result.results.filter(r => r.error);
       if (errors.length > 0) {
+        succeeded = false;
         setStatusMessage({
           type: 'error',
           text: errors.map(e => `${e.file}: ${e.error}`).join('; '),
         });
       }
     } catch (err) {
+      succeeded = false;
       let message = 'Upload failed. Check your connection and try again.';
       if (err.message?.includes('not accepted') || err.message?.includes('JPEG')) {
         message = 'File not accepted. Use JPEG, PNG, WebP, or HEIC.';
@@ -58,17 +62,47 @@ export default function PhotoUploadForm({ countryCode, countryName }) {
     // Reset input so the same file can be re-selected after an error
     if (inputRef.current) inputRef.current.value = '';
 
-    // Auto-clear success message after 4 seconds
-    if (statusMessage?.type !== 'error') {
+    // Auto-clear success message after 4 seconds (keep errors visible)
+    if (succeeded) {
       setTimeout(() => setStatusMessage(null), 4000);
     }
+  }
+
+  function handleFileChange(e) {
+    uploadFiles(Array.from(e.target.files || []));
+  }
+
+  // Drag-and-drop (UI-SPEC drag-active state)
+  function handleDragOver(e) {
+    e.preventDefault();
+    if (!isUploading) setIsDragging(true);
+  }
+  function handleDragLeave(e) {
+    e.preventDefault();
+    setIsDragging(false);
+  }
+  function handleDrop(e) {
+    e.preventDefault();
+    setIsDragging(false);
+    if (isUploading) return;
+    const files = Array.from(e.dataTransfer?.files || []).filter(f => f.type.startsWith('image/') || /\.(heic|heif)$/i.test(f.name));
+    uploadFiles(files);
   }
 
   const isUploading = uploadMutation.isPending;
 
   return (
     <div className="p-4 border-b border-border">
-      <div className="border-2 border-dashed border-border rounded p-6 bg-surface">
+      <div
+        className={[
+          'border-2 border-dashed rounded p-6 transition-colors',
+          isDragging ? 'border-accent bg-accent-subtle' : 'border-border bg-surface',
+        ].join(' ')}
+        onDragOver={handleDragOver}
+        onDragEnter={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         {/* Hidden file input */}
         <input
           ref={inputRef}
@@ -96,7 +130,7 @@ export default function PhotoUploadForm({ countryCode, countryName }) {
           ].join(' ')}
           aria-disabled={isUploading}
         >
-          {isUploading ? 'Uploading...' : 'Add Photos'}
+          {isUploading ? 'Uploading...' : isDragging ? 'Drop to Add' : 'Add Photos'}
         </label>
 
         {/* Accepted format hint */}
