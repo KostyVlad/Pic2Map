@@ -74,11 +74,25 @@ export default function CountryLayer({ countriesGeoJSON, photoCounts, selectedCo
         layer._path.setAttribute('role', 'button');
         layer._path.setAttribute('aria-label', name);
       }
+      // After a photoCounts-driven re-mount the layer objects are fresh. Re-bind the
+      // selected layer to the new object and re-apply its selected style so selection
+      // (and correct hover/reset behavior) survives the re-mount.
+      if (code === selectedCodeRef.current) {
+        selectedLayerRef.current = layer;
+        layer.setStyle(getSelectedStyle(feature));
+      }
     });
 
     layer.on({
       mouseover(e) {
         const l = e.target;
+        // Fix 1 (sticking): Leaflet drops mouseout when the cursor moves fast between
+        // adjacent polygons, leaving the prior layer stuck in HOVER. Reset the previously
+        // hovered layer here before highlighting the new one.
+        const prev = hoveredLayerRef.current;
+        if (prev && prev !== l && prev !== selectedLayerRef.current) {
+          prev.setStyle(getBaseStyle(prev.feature));
+        }
         // Don't override selected style — only non-selected countries get hover effect
         if (l !== selectedLayerRef.current) {
           // Apply hover overlay on top of the current base style
