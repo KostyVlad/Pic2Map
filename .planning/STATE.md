@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: checkpoint
-stopped_at: "02-01 Task 4: supply-chain + JWT_SECRET checkpoint (blocking)"
-last_updated: "2026-06-19T20:45:44Z"
-last_activity: "2026-06-19 -- Phase 2 Plan 01 paused at human checkpoint (Tasks 1-3 complete)"
+stopped_at: "02-02 Task 3: human-check (browser walkthrough of auth gate)"
+last_updated: "2026-06-19T21:09:00Z"
+last_activity: "2026-06-19 -- Phase 2 Plan 02 all tasks implemented; paused at Task 3 human browser walkthrough"
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 5
   completed_plans: 2
-  percent: 25
+  percent: 33
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-06-17)
 ## Current Position
 
 Phase: 2 (accounts-private-maps) — CHECKPOINT
-Plan: 1 of 3 (Tasks 1-3 committed; paused at Task 4 blocking human checkpoint)
-Status: Awaiting human: supply-chain package verification + JWT_SECRET in server/.env
-Last activity: 2026-06-19 -- Phase 2 Plan 01 Tasks 1-3 committed; paused at checkpoint
+Plan: 2 of 3 (all tasks implemented; paused at Task 3 human browser walkthrough)
+Status: Awaiting human: browser walkthrough — login gate, signup, session refresh, sign out, cross-user isolation
+Last activity: 2026-06-19 -- Phase 2 Plan 02 all 3 tasks implemented and committed; paused at human-check
 
-Progress: [##░░░░░░░░] 25% (checkpoint at 02-01 Task 4)
+Progress: [###░░░░░░░] 33% (checkpoint at 02-02 Task 3 human-check)
 
 ## Performance Metrics
 
@@ -68,6 +68,7 @@ Recent decisions affecting current work:
 - Phase 4: Nominatim geocoding must run async (≤1 req/s) — never inline with upload or it IP-bans the app.
 - Phase 1 Plan 1: Backend ESM ("type":"module") for file-type v22 compatibility. sharp.withMetadata(false) retains EXIF in 0.34.5 — omit the call entirely to strip (see ingest.js comments). CountryLayer key prop forces re-mount on photoCounts change (Pitfall 3 fix).
 - Phase 2 Plan 1: Signup 400 "Email already registered" IS intentional (UI-SPEC accepts enumeration on signup). Login always returns identical 401 (T-02-ENUM). COOKIE_SECURE=false in dev (Pitfall 3). clearCookie options must match setAuthCookie options or browser won't clear.
+- Phase 2 Plan 2: requireAuth mounted at router level in app.js (not per-route). File IDOR returns 404 not 403 (no existence leak). ObjectId cast required in aggregate $match. AuthProvider inside BrowserRouter so screens can use react-router Link/Navigate.
 
 ### Pending Todos
 
@@ -88,6 +89,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-19T20:45:44Z
-Stopped at: 02-01 Task 4 — blocking human checkpoint (supply-chain + JWT_SECRET)
-Resume file: .planning/phases/02-accounts-private-maps/02-01-PLAN.md (Task 4 onward)
+Last session: 2026-06-19T21:09:00Z
+Stopped at: 02-02 Task 3 — human-check (browser walkthrough of auth gate)
+Resume file: .planning/phases/02-accounts-private-maps/02-02-PLAN.md (after human approval)

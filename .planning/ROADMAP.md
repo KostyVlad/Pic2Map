@@ -63,11 +63,11 @@ deletion, upload progress, and mobile polish.
 Plans:
 **Wave 1**
 
-- [ ] 02-01-PLAN.md — Backend auth foundation: User model, jose JWT + argon2id, requireAuth, signup/login/logout/me + rate limiting (AUTH-01/02/03)
+- [x] 02-01-PLAN.md — Backend auth foundation: User model, jose JWT + argon2id, requireAuth, signup/login/logout/me + rate limiting (AUTH-01/02/03)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 02-02-PLAN.md — Private maps: userId scoping + IDOR fix on all data routes, fresh-start migration, client login/signup gating + AccountStrip (AUTH-04)
+- [ ] 02-02-PLAN.md — Private maps: userId scoping + IDOR fix on all data routes, fresh-start migration, client login/signup gating + AccountStrip (AUTH-04) [tasks implemented; awaiting human-check]
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -114,6 +114,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Country Map & Per-Country Photos | 2/2 | Complete   | 2026-06-19 |
-| 2. Accounts & Private Maps | 0/3 | Executing (02-01 at checkpoint) | - |
+| 2. Accounts & Private Maps | 1/3 | Executing (02-02 at human-check) | - |
 | 3. EXIF Auto-Placement & Pins | 0/TBD | Not started | - |
 | 4. Places, Editing & Polish | 0/TBD | Not started | - |
