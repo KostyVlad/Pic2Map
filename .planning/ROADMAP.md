@@ -59,7 +59,15 @@ deletion, upload progress, and mobile polish.
   4. Unauthenticated visitors see only the login/signup page; pre-auth (userId=null) test data is cleared and new accounts start with an empty map.
   5. A user who forgets their password can request a reset link by email and set a new password.
 
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+
+- [ ] 02-01-PLAN.md — Backend auth foundation: User model, jose JWT + argon2id, requireAuth, signup/login/logout/me + rate limiting (AUTH-01/02/03)
+- [ ] 02-02-PLAN.md — Private maps: userId scoping + IDOR fix on all data routes, fresh-start migration, client login/signup gating + AccountStrip (AUTH-04)
+- [ ] 02-03-PLAN.md — Password reset: email adapter (Resend), forgot/reset endpoints (hashed single-use token), forgot/reset screens (AUTH-05)
+
+**UI hint**: yes
 
 ### Phase 3: EXIF Auto-Placement & Pins
 
@@ -100,6 +108,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Country Map & Per-Country Photos | 2/2 | Complete   | 2026-06-19 |
-| 2. Accounts & Private Maps | 0/TBD | Not started | - |
+| 2. Accounts & Private Maps | 0/3 | Planned | - |
 | 3. EXIF Auto-Placement & Pins | 0/TBD | Not started | - |
 | 4. Places, Editing & Polish | 0/TBD | Not started | - |
