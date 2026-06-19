@@ -52,12 +52,16 @@ edit/move, delete, upload progress, mobile polish (Phase 4); email *verification
   ~1 day default, ~30 days with remember-me; planner may tune). On expiry, the user is
   returned to the login page.
 
+### Email provider (decided)
+- **D-06:** Password-reset emails use **Resend (free tier)** — ~3000 emails/month, no credit
+  card required (more than enough for password resets). The user supplies `RESEND_API_KEY`
+  (and a `MAIL_FROM`, default `onboarding@resend.dev` for dev) in `server/.env` — like
+  `MONGODB_URI`. **Gmail SMTP** (app password, also free) is the documented fallback if the
+  user prefers not to create a Resend account. Research/plan should target Resend's Node SDK
+  but keep the email-sending behind a small adapter so SMTP can swap in. Reset-token TTL and
+  single-use enforcement are research/plan details.
+
 ### Claude's Discretion / research flags
-- **Email provider for password reset:** SMTP vs a transactional API (e.g. Resend / SendGrid
-  free tier). Research should recommend one; it will likely need a credential/API key the
-  user supplies in `server/.env` (like `MONGODB_URI`). Flag this as a setup item so it does
-  not block silently. Token TTL for reset links and single-use enforcement are research/plan
-  details.
 - **Client routing approach:** add `react-router` vs a lightweight auth-context conditional
   render — planner/UI decide. (No router exists yet; App.jsx is a single map view.)
 - Exact JWT/cookie TTL values, rate-limiting on login/reset endpoints.
