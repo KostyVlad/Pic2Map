@@ -80,7 +80,7 @@ export default function WorldMap() {
         center={[20, 0]}
         zoom={2}
         minZoom={2}
-        maxZoom={6}
+        maxZoom={10}
         worldCopyJump
         className="h-dvh w-full"
         style={{ position: 'absolute', inset: 0 }}
