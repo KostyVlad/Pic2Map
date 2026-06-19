@@ -6,6 +6,11 @@ const {
   STORAGE_PATH,
   MAX_FILE_BYTES,
   MAX_FILES_PER_BATCH,
+  JWT_SECRET,
+  NODE_ENV,
+  RESEND_API_KEY,
+  MAIL_FROM,
+  APP_URL,
 } = process.env;
 
 if (!MONGODB_URI) {
@@ -16,12 +21,25 @@ if (!MONGODB_URI) {
   );
 }
 
+if (!JWT_SECRET) {
+  throw new Error(
+    'JWT_SECRET is not set. ' +
+    'Add a random secret (32+ chars) to server/.env — e.g. openssl rand -hex 32'
+  );
+}
+
 const config = Object.freeze({
   MONGODB_URI,
   PORT: Number(PORT) || 3001,
   STORAGE_PATH: STORAGE_PATH || './uploads',
   MAX_FILE_BYTES: Number(MAX_FILE_BYTES) || 26214400,   // 25 MB
   MAX_FILES_PER_BATCH: Number(MAX_FILES_PER_BATCH) || 50,
+  JWT_SECRET,
+  NODE_ENV: NODE_ENV || 'development',
+  COOKIE_SECURE: NODE_ENV === 'production',  // Pitfall 3: false on localhost
+  RESEND_API_KEY: RESEND_API_KEY || '',
+  MAIL_FROM: MAIL_FROM || 'onboarding@resend.dev',
+  APP_URL: APP_URL || 'http://localhost:5173',
 });
 
 export default config;

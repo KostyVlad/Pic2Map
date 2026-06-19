@@ -10,13 +10,18 @@
     "test": "node --test test/"
   },
   "dependencies": {
+    "argon2": "^0.44.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
     "file-type": "^22.0.1",
     "heic-convert": "^2.1.0",
+    "jose": "^6.2.3",
     "mongoose": "^9.7.1",
     "multer": "^2.2.0",
+    "resend": "^6.14.0",
     "sharp": "^0.34.5"
   },
   "devDependencies": {

@@ -1,12 +1,19 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import photosRouter from './routes/photos.js';
 import countriesRouter from './routes/countries.js';
 
 const app = express();
 
-// CORS for Vite dev server origin
-app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:3000'] }));
+// CORS for Vite dev server origin — credentials:true required for httpOnly cookies (Pitfall 4)
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  credentials: true,
+}));
+
+// Parse cookies (required for httpOnly auth_token cookie)
+app.use(cookieParser());
 
 // JSON body parsing
 app.use(express.json());
