@@ -14,7 +14,9 @@ export function usePhotoCounts() {
   return useQuery({
     queryKey: ['photo-counts'],
     queryFn: async () => {
-      const res = await fetch('/api/countries/photo-counts');
+      const res = await fetch('/api/countries/photo-counts', {
+        credentials: 'include',
+      });
       if (!res.ok) throw new Error('Failed to fetch photo counts');
       const data = await res.json();
       // Convert { US: 12, FR: 8 } object to Map<string, number>

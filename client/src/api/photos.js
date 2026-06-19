@@ -10,7 +10,9 @@ export function usePhotos(countryCode) {
   return useQuery({
     queryKey: ['photos', countryCode],
     queryFn: async () => {
-      const res = await fetch(`/api/photos?countryCode=${encodeURIComponent(countryCode)}`);
+      const res = await fetch(`/api/photos?countryCode=${encodeURIComponent(countryCode)}`, {
+        credentials: 'include',
+      });
       if (!res.ok) throw new Error('Failed to fetch photos');
       return res.json();
     },
@@ -41,6 +43,7 @@ export function useUploadPhotos() {
       const res = await fetch('/api/photos', {
         method: 'POST',
         body: formData,
+        credentials: 'include',
       });
 
       if (!res.ok) {
