@@ -1,20 +1,25 @@
 /**
- * PhotoGallery — 3-column thumbnail grid with lightbox.
+ * PhotoGallery — 3-column thumbnail grid with lightbox + multi-select delete.
  *
  * UI-SPEC: grid-cols-3, gap-1, 1:1 aspect-ratio thumbnails with 4px radius.
- * Clicking a thumbnail opens yet-another-react-lightbox with the display-size image.
+ * Default: clicking a thumbnail opens the lightbox; the lightbox toolbar has a
+ * single-photo Delete (POL-04).
+ * Select mode: a "Select" toggle turns clicks into selection; a bar shows
+ * "N selected" with Delete / Cancel and removes them in one request.
  * Empty state: "No photos yet" heading (UI-SPEC Copywriting).
- * A Delete button in the lightbox toolbar removes the currently viewed photo
- * (POL-04) after a confirmation, then closes the lightbox.
  */
 
 import { useState } from 'react';
 import Lightbox from 'yet-another-react-lightbox';
-import { useDeletePhoto } from '../api/photos.js';
+import { useDeletePhoto, useDeletePhotos } from '../api/photos.js';
 
 export default function PhotoGallery({ photos = [], countryCode }) {
   const [lightboxIndex, setLightboxIndex] = useState(-1);
-  const { mutate: deletePhoto, isPending: isDeleting } = useDeletePhoto();
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState(() => new Set());
+
+  const { mutate: deletePhoto, isPending: isDeletingOne } = useDeletePhoto();
+  const { mutate: deletePhotos, isPending: isDeletingMany } = useDeletePhotos();
 
   if (photos.length === 0) {
     return (
@@ -29,9 +34,30 @@ export default function PhotoGallery({ photos = [], countryCode }) {
     alt: p.originalFilename || 'Photo',
   }));
 
-  function handleDelete() {
+  function exitSelectMode() {
+    setSelectMode(false);
+    setSelected(new Set());
+  }
+
+  function toggleSelected(id) {
+    setSelected(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  function handleThumbClick(photo, index) {
+    if (selectMode) {
+      toggleSelected(photo._id);
+    } else {
+      setLightboxIndex(index);
+    }
+  }
+
+  function handleDeleteOne() {
     const photo = photos[lightboxIndex];
-    if (!photo || isDeleting) return;
+    if (!photo || isDeletingOne) return;
     if (!window.confirm('Delete this photo? This cannot be undone.')) return;
     deletePhoto(
       { id: photo._id, countryCode: countryCode || photo.countryCode },
@@ -39,25 +65,96 @@ export default function PhotoGallery({ photos = [], countryCode }) {
     );
   }
 
+  function handleDeleteSelected() {
+    if (selected.size === 0 || isDeletingMany) return;
+    if (!window.confirm(`Delete ${selected.size} photo${selected.size > 1 ? 's' : ''}? This cannot be undone.`)) return;
+    deletePhotos(
+      { ids: [...selected], countryCode },
+      { onSuccess: exitSelectMode }
+    );
+  }
+
   return (
     <>
-      <div className="grid grid-cols-3 gap-1 p-2">
-        {photos.map((photo, i) => (
+      {/* Selection toolbar */}
+      <div className="flex items-center justify-between gap-2 px-2 pt-2">
+        {selectMode ? (
+          <>
+            <span className="text-label text-text-muted">{selected.size} selected</span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleDeleteSelected}
+                disabled={selected.size === 0 || isDeletingMany}
+                className={[
+                  'min-h-11 px-3 rounded-md text-label font-semibold',
+                  'border border-destructive text-destructive',
+                  'transition-colors focus:outline-none focus:ring-2 focus:ring-destructive',
+                  (selected.size === 0 || isDeletingMany) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-50',
+                ].join(' ')}
+              >
+                {isDeletingMany ? 'Deleting…' : 'Delete'}
+              </button>
+              <button
+                type="button"
+                onClick={exitSelectMode}
+                disabled={isDeletingMany}
+                className="min-h-11 px-3 rounded-md text-label font-semibold text-text-muted hover:text-text transition-colors focus:outline-none focus:ring-2 focus:ring-accent"
+              >
+                Cancel
+              </button>
+            </div>
+          </>
+        ) : (
           <button
-            key={photo._id}
             type="button"
-            className="aspect-square overflow-hidden rounded cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent"
-            onClick={() => setLightboxIndex(i)}
-            aria-label={photo.originalFilename || `Photo ${i + 1}`}
+            onClick={() => setSelectMode(true)}
+            className="ml-auto min-h-11 px-3 rounded-md text-label font-semibold text-accent hover:bg-accent-subtle transition-colors focus:outline-none focus:ring-2 focus:ring-accent"
           >
-            <img
-              src={`/api/photos/file/${encodeURIComponent(photo.thumbnailKey)}`}
-              alt={photo.originalFilename || `Photo ${i + 1}`}
-              className="w-full h-full object-cover hover:opacity-85 transition-opacity rounded"
-              loading="lazy"
-            />
+            Select
           </button>
-        ))}
+        )}
+      </div>
+
+      <div className="grid grid-cols-3 gap-1 p-2">
+        {photos.map((photo, i) => {
+          const isSelected = selected.has(photo._id);
+          return (
+            <button
+              key={photo._id}
+              type="button"
+              className={[
+                'relative aspect-square overflow-hidden rounded cursor-pointer',
+                'focus:outline-none focus:ring-2 focus:ring-accent',
+                isSelected ? 'ring-2 ring-accent' : '',
+              ].join(' ')}
+              onClick={() => handleThumbClick(photo, i)}
+              aria-label={photo.originalFilename || `Photo ${i + 1}`}
+              aria-pressed={selectMode ? isSelected : undefined}
+            >
+              <img
+                src={`/api/photos/file/${encodeURIComponent(photo.thumbnailKey)}`}
+                alt={photo.originalFilename || `Photo ${i + 1}`}
+                className={[
+                  'w-full h-full object-cover rounded transition-opacity',
+                  selectMode && !isSelected ? 'opacity-70' : 'hover:opacity-85',
+                ].join(' ')}
+                loading="lazy"
+              />
+              {selectMode && (
+                <span
+                  className={[
+                    'absolute top-1 left-1 w-5 h-5 rounded-full border flex items-center justify-center text-[11px] font-bold',
+                    isSelected ? 'bg-accent text-surface border-accent' : 'bg-overlay text-surface border-surface',
+                  ].join(' ')}
+                  aria-hidden="true"
+                >
+                  {isSelected ? '✓' : ''}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       <Lightbox
@@ -72,11 +169,11 @@ export default function PhotoGallery({ photos = [], countryCode }) {
               key="delete"
               type="button"
               className="yarl__button"
-              onClick={handleDelete}
-              disabled={isDeleting}
+              onClick={handleDeleteOne}
+              disabled={isDeletingOne}
               aria-label="Delete photo"
             >
-              {isDeleting ? 'Deleting…' : 'Delete'}
+              {isDeletingOne ? 'Deleting…' : 'Delete'}
             </button>,
             'close',
           ],

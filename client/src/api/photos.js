@@ -61,6 +61,34 @@ export function useUploadPhotos() {
 }
 
 /**
+ * Delete several photos at once.
+ * @returns {import('@tanstack/react-query').UseMutationResult}
+ */
+export function useDeletePhotos() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ ids }) => {
+      const res = await fetch('/api/photos/bulk-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to delete photos.');
+      }
+      return res.json();
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['photos', variables.countryCode] });
+      queryClient.invalidateQueries({ queryKey: ['photo-counts'] });
+    },
+  });
+}
+
+/**
  * Delete a single photo by id.
  * On success: refreshes the country's gallery and the map count badges.
  *

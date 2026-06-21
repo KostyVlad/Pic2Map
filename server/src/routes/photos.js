@@ -9,6 +9,7 @@
 import { Router } from 'express';
 import fs from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
+import mongoose from 'mongoose';
 import { upload, validateMagicBytes } from '../middleware/upload.js';
 import { ingestPhoto } from '../services/ingest.js';
 import { storage } from '../services/storage/index.js';
@@ -169,6 +170,38 @@ router.get('/file/:key', async (req, res, next) => {
       }
     });
     opened.stream.pipe(res);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/photos/bulk-delete  { ids: string[] }
+// Delete multiple owned photos in one request. Each id is scoped by userId, so
+// non-owned / unknown / malformed ids are simply skipped (no existence leak).
+// Returns { deleted: <count actually removed> }.
+// ---------------------------------------------------------------------------
+router.post('/bulk-delete', async (req, res, next) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'ids must be a non-empty array' });
+    }
+
+    // Drop malformed ObjectIds up front so the query can't throw a CastError
+    const validIds = ids.filter((id) => mongoose.isValidObjectId(id));
+
+    // Only the caller's own photos — IDOR-safe
+    const photos = await Photo.find({ _id: { $in: validIds }, userId: req.userId });
+
+    // Best-effort storage cleanup for every owned photo (display + thumbnail)
+    await Promise.all(
+      photos.flatMap((p) => [storage.delete(p.storageKey), storage.delete(p.thumbnailKey)])
+    );
+
+    await Photo.deleteMany({ _id: { $in: photos.map((p) => p._id) }, userId: req.userId });
+
+    return res.status(200).json({ deleted: photos.length });
   } catch (err) {
     next(err);
   }
