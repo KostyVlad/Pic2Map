@@ -27,7 +27,15 @@ if (!process.env.MONGODB_URI) {
 }
 
 // ------------------------------------------------------------------
-// Lazy imports (only after skip guard passes)
+// SAFETY: redirect to a dedicated throwaway test database BEFORE importing
+// config/db (config reads MONGODB_URI at import time). Without this the test
+// would connect to the real database and after() dropDatabase() would WIPE it.
+// ------------------------------------------------------------------
+const TEST_DB_NAME = `photo_map_isolation_test_${randomUUID().slice(0, 8)}`;
+process.env.MONGODB_URI = process.env.MONGODB_URI.replace(/\/[^/?]+(\?|$)/, `/${TEST_DB_NAME}$1`);
+
+// ------------------------------------------------------------------
+// Lazy imports (only after skip guard + test-DB redirect)
 // ------------------------------------------------------------------
 const { default: app } = await import('../src/app.js');
 const { default: Photo } = await import('../src/models/Photo.js');
@@ -86,18 +94,16 @@ function cookieHeader(setCookieValue) {
 // ------------------------------------------------------------------
 describe('cross-user isolation (IDOR + AUTH-04)', async () => {
   let server;
-  const DB_NAME = `photo_map_isolation_test_${randomUUID().slice(0, 8)}`;
 
   before(async () => {
-    // Connect to a dedicated test database
-    const baseUri = process.env.MONGODB_URI.replace(/\/[^/?]+(\?|$)/, `/${DB_NAME}$1`);
+    // MONGODB_URI was already redirected to the throwaway TEST_DB_NAME at module load.
     await connectDb();
     server = http.createServer(app);
     await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   });
 
   after(async () => {
-    // Clean up test data and disconnect
+    // Safe: this drops the dedicated test DB (TEST_DB_NAME), not the real one.
     await mongoose.connection.dropDatabase();
     await mongoose.disconnect();
     await new Promise((resolve) => server.close(resolve));
