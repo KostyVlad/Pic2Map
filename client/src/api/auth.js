@@ -23,14 +23,15 @@ export function useLogin() {
       }
       return res.json();
     },
-    onSuccess: () => {
-      // Drop the previous account's data so nothing bleeds into this session,
-      // then refetch auth so ProtectedRoute re-evaluates and the redirect fires.
-      // (Do NOT clear() — that nukes the active ['auth','me'] observer and breaks
-      // the post-login navigation.)
+    onSuccess: (data) => {
+      // Drop the previous account's data so nothing bleeds into this session.
       queryClient.removeQueries({ queryKey: ['photos'] });
       queryClient.removeQueries({ queryKey: ['photo-counts'] });
-      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+      // Seed auth SYNCHRONOUSLY from the login response ({ user: {id,email} } →
+      // /me shape {id,email}). This makes `user` available before the screen's
+      // navigate('/') runs, so ProtectedRoute doesn't bounce back to /login while
+      // an async /me refetch is still in flight.
+      queryClient.setQueryData(['auth', 'me'], data?.user ?? null);
     },
   });
 }
@@ -59,12 +60,12 @@ export function useSignup() {
       }
       return res.json();
     },
-    onSuccess: () => {
-      // Fresh account — drop any prior session's data, then refetch auth so the
-      // signup screen's navigate('/') lands on an authenticated map.
+    onSuccess: (data) => {
+      // Fresh account — drop any prior session's data, then seed auth from the
+      // signup response so navigate('/') lands on an authenticated map (no race).
       queryClient.removeQueries({ queryKey: ['photos'] });
       queryClient.removeQueries({ queryKey: ['photo-counts'] });
-      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+      queryClient.setQueryData(['auth', 'me'], data?.user ?? null);
     },
   });
 }
@@ -91,10 +92,10 @@ export function useLogout() {
     },
     onSuccess: () => {
       // Remove this account's data so the next account on this browser can't see
-      // it, then refetch auth (→ 401 → null) so ProtectedRoute redirects to login.
+      // it, and set auth to null synchronously so ProtectedRoute redirects to login.
       queryClient.removeQueries({ queryKey: ['photos'] });
       queryClient.removeQueries({ queryKey: ['photo-counts'] });
-      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+      queryClient.setQueryData(['auth', 'me'], null);
     },
   });
 }
