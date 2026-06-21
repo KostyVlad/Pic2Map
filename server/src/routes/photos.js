@@ -8,7 +8,6 @@
 
 import { Router } from 'express';
 import fs from 'node:fs/promises';
-import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { upload, validateMagicBytes } from '../middleware/upload.js';
 import { ingestPhoto } from '../services/ingest.js';
@@ -19,20 +18,10 @@ import config from '../config.js';
 const router = Router();
 
 // ---------------------------------------------------------------------------
-// Ensure tmp/ directory exists before first upload
-// ---------------------------------------------------------------------------
-async function ensureTmpDir() {
-  const tmpDir = path.join(config.STORAGE_PATH, 'tmp');
-  await fs.mkdir(tmpDir, { recursive: true });
-}
-
-// ---------------------------------------------------------------------------
 // POST /api/photos
 // ---------------------------------------------------------------------------
 router.post('/', upload.array('photos', config.MAX_FILES_PER_BATCH), async (req, res, next) => {
   try {
-    await ensureTmpDir();
-
     const { countryCode, countryName } = req.body;
     if (!countryCode) {
       // Clean up any files that landed before the error

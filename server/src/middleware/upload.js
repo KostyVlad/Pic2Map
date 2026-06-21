@@ -8,6 +8,7 @@
  */
 
 import multer from 'multer';
+import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import config from '../config.js';
@@ -18,7 +19,11 @@ import config from '../config.js';
 // ---------------------------------------------------------------------------
 const storage = multer.diskStorage({
   destination(req, file, cb) {
-    cb(null, path.join(config.STORAGE_PATH, 'tmp'));
+    // multer requires the destination to already exist and never creates it.
+    // Create it here so uploads work on a fresh checkout or after the uploads/
+    // dir was removed (e.g. when switching to a cloud storage backend).
+    const dir = path.join(config.STORAGE_PATH, 'tmp');
+    fs.mkdir(dir, { recursive: true }, (err) => cb(err, dir));
   },
   filename(req, file, cb) {
     // Always use a UUID — never trust the original filename
