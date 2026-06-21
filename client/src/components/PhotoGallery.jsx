@@ -12,11 +12,14 @@
 import { useState } from 'react';
 import Lightbox from 'yet-another-react-lightbox';
 import { useDeletePhoto, useDeletePhotos } from '../api/photos.js';
+import ConfirmDialog from './ConfirmDialog.jsx';
 
 export default function PhotoGallery({ photos = [], countryCode }) {
   const [lightboxIndex, setLightboxIndex] = useState(-1);
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState(() => new Set());
+  // { message, confirmLabel, onConfirm } | null
+  const [confirm, setConfirm] = useState(null);
 
   const { mutate: deletePhoto, isPending: isDeletingOne } = useDeletePhoto();
   const { mutate: deletePhotos, isPending: isDeletingMany } = useDeletePhotos();
@@ -58,20 +61,39 @@ export default function PhotoGallery({ photos = [], countryCode }) {
   function handleDeleteOne() {
     const photo = photos[lightboxIndex];
     if (!photo || isDeletingOne) return;
-    if (!window.confirm('Delete this photo? This cannot be undone.')) return;
-    deletePhoto(
-      { id: photo._id, countryCode: countryCode || photo.countryCode },
-      { onSuccess: () => setLightboxIndex(-1) }
-    );
+    setConfirm({
+      message: 'Delete this photo? This cannot be undone.',
+      confirmLabel: 'Delete',
+      onConfirm: () =>
+        deletePhoto(
+          { id: photo._id, countryCode: countryCode || photo.countryCode },
+          {
+            onSuccess: () => {
+              setConfirm(null);
+              setLightboxIndex(-1);
+            },
+          }
+        ),
+    });
   }
 
   function handleDeleteSelected() {
     if (selected.size === 0 || isDeletingMany) return;
-    if (!window.confirm(`Delete ${selected.size} photo${selected.size > 1 ? 's' : ''}? This cannot be undone.`)) return;
-    deletePhotos(
-      { ids: [...selected], countryCode },
-      { onSuccess: exitSelectMode }
-    );
+    const count = selected.size;
+    setConfirm({
+      message: `Delete ${count} photo${count > 1 ? 's' : ''}? This cannot be undone.`,
+      confirmLabel: `Delete ${count}`,
+      onConfirm: () =>
+        deletePhotos(
+          { ids: [...selected], countryCode },
+          {
+            onSuccess: () => {
+              setConfirm(null);
+              exitSelectMode();
+            },
+          }
+        ),
+    });
   }
 
   return (
@@ -177,6 +199,18 @@ export default function PhotoGallery({ photos = [], countryCode }) {
             </button>,
             'close',
           ],
+        }}
+      />
+
+      <ConfirmDialog
+        open={!!confirm}
+        title="Delete photo"
+        message={confirm?.message}
+        confirmLabel={confirm?.confirmLabel}
+        busy={isDeletingOne || isDeletingMany}
+        onConfirm={() => confirm?.onConfirm?.()}
+        onCancel={() => {
+          if (!(isDeletingOne || isDeletingMany)) setConfirm(null);
         }}
       />
     </>
