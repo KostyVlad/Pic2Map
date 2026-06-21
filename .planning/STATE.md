@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: checkpoint
-stopped_at: "02-02 Task 3: human-check (browser walkthrough of auth gate)"
-last_updated: "2026-06-19T21:09:00Z"
-last_activity: "2026-06-19 -- Phase 2 Plan 02 all tasks implemented; paused at Task 3 human browser walkthrough"
+stopped_at: "02-03 Task 2: human-check (live email reset walkthrough with RESEND_API_KEY)"
+last_updated: "2026-06-21T00:00:00Z"
+last_activity: "2026-06-21 -- Phase 2 Plan 03 all tasks implemented; paused at Task 2 human email-reset browser walkthrough"
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 5
-  completed_plans: 2
-  percent: 33
+  completed_plans: 3
+  percent: 40
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-06-17)
 ## Current Position
 
 Phase: 2 (accounts-private-maps) — CHECKPOINT
-Plan: 2 of 3 (all tasks implemented; paused at Task 3 human browser walkthrough)
-Status: Awaiting human: browser walkthrough — login gate, signup, session refresh, sign out, cross-user isolation
-Last activity: 2026-06-19 -- Phase 2 Plan 02 all 3 tasks implemented and committed; paused at human-check
+Plan: 3 of 3 (all tasks implemented; paused at Task 2 human email-reset walkthrough)
+Status: Awaiting human: live password-reset email walkthrough with RESEND_API_KEY set
+Last activity: 2026-06-21 -- Phase 2 Plan 03 all 2 tasks implemented and committed; paused at human-check
 
-Progress: [###░░░░░░░] 33% (checkpoint at 02-02 Task 3 human-check)
+Progress: [####░░░░░░] 40% (checkpoint at 02-03 Task 2 human-check)
 
 ## Performance Metrics
 
@@ -69,6 +69,7 @@ Recent decisions affecting current work:
 - Phase 1 Plan 1: Backend ESM ("type":"module") for file-type v22 compatibility. sharp.withMetadata(false) retains EXIF in 0.34.5 — omit the call entirely to strip (see ingest.js comments). CountryLayer key prop forces re-mount on photoCounts change (Pitfall 3 fix).
 - Phase 2 Plan 1: Signup 400 "Email already registered" IS intentional (UI-SPEC accepts enumeration on signup). Login always returns identical 401 (T-02-ENUM). COOKIE_SECURE=false in dev (Pitfall 3). clearCookie options must match setAuthCookie options or browser won't clear.
 - Phase 2 Plan 2: requireAuth mounted at router level in app.js (not per-route). File IDOR returns 404 not 403 (no existence leak). ObjectId cast required in aggregate $match. AuthProvider inside BrowserRouter so screens can use react-router Link/Navigate.
+- Phase 2 Plan 3: Email adapter defaults to Resend (smtp.js is a documented stub). Rate limiter on /forgot-password is stricter than /login (5 vs 10/15min). sendEmail in route wrapped in try/catch — mail failure does NOT affect 200 response. ResetPasswordScreen treats missing-token-in-URL and server-400 as the same expired state.
 
 ### Pending Todos
 
@@ -89,6 +90,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-19T21:09:00Z
-Stopped at: 02-02 Task 3 — human-check (browser walkthrough of auth gate)
-Resume file: .planning/phases/02-accounts-private-maps/02-02-PLAN.md (after human approval)
+Last session: 2026-06-21T00:00:00Z
+Stopped at: 02-03 Task 2 — human-check (live password-reset email walkthrough)
+Resume file: .planning/phases/02-accounts-private-maps/02-03-PLAN.md (after human approval)

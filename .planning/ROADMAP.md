@@ -71,7 +71,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 02-03-PLAN.md — Password reset: email adapter (Resend), forgot/reset endpoints (hashed single-use token), forgot/reset screens (AUTH-05)
+- [~] 02-03-PLAN.md — Password reset: email adapter (Resend), forgot/reset endpoints (hashed single-use token), forgot/reset screens (AUTH-05) [tasks implemented; awaiting human email-reset walkthrough]
 
 **UI hint**: yes
 
@@ -114,6 +114,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Country Map & Per-Country Photos | 2/2 | Complete   | 2026-06-19 |
-| 2. Accounts & Private Maps | 2/3 | In Progress|  |
+| 2. Accounts & Private Maps | 2/3 (3rd at checkpoint) | In Progress|  |
 | 3. EXIF Auto-Placement & Pins | 0/TBD | Not started | - |
 | 4. Places, Editing & Polish | 0/TBD | Not started | - |
