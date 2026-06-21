@@ -157,7 +157,10 @@ router.get('/file/:key', async (req, res, next) => {
     }
 
     res.setHeader('Content-Type', opened.contentType);
-    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); // 1 year — content-addressed keys
+    // PRIVATE: per-user, auth-gated content. Must never be cached by shared/proxy
+    // caches and served to another account. Keys are unique per photo, so a given
+    // browser only ever requests its own owner's keys.
+    res.setHeader('Cache-Control', 'private, max-age=31536000, immutable'); // 1 year — content-addressed keys
 
     // Stream the file — served files are already EXIF-stripped by ingest (PHOTO-02 / T-01-EXIF)
     opened.stream.on('error', () => {

@@ -24,7 +24,10 @@ export function useLogin() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+      // Wipe ALL cached data (photos, photo-counts) so the previous account's
+      // data never bleeds into this session. clear() also drops ['auth','me'],
+      // so AuthProvider refetches and ProtectedRoute re-evaluates for the new user.
+      queryClient.clear();
     },
   });
 }
@@ -54,7 +57,8 @@ export function useSignup() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+      // Fresh account — wipe any cached data from a prior session on this browser.
+      queryClient.clear();
     },
   });
 }
@@ -80,7 +84,9 @@ export function useLogout() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+      // Wipe ALL cached data so nothing from this account is visible to the
+      // next account that logs in on the same browser.
+      queryClient.clear();
     },
   });
 }
