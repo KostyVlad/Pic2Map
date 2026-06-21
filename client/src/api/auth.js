@@ -24,10 +24,13 @@ export function useLogin() {
       return res.json();
     },
     onSuccess: () => {
-      // Wipe ALL cached data (photos, photo-counts) so the previous account's
-      // data never bleeds into this session. clear() also drops ['auth','me'],
-      // so AuthProvider refetches and ProtectedRoute re-evaluates for the new user.
-      queryClient.clear();
+      // Drop the previous account's data so nothing bleeds into this session,
+      // then refetch auth so ProtectedRoute re-evaluates and the redirect fires.
+      // (Do NOT clear() — that nukes the active ['auth','me'] observer and breaks
+      // the post-login navigation.)
+      queryClient.removeQueries({ queryKey: ['photos'] });
+      queryClient.removeQueries({ queryKey: ['photo-counts'] });
+      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
     },
   });
 }
@@ -57,8 +60,11 @@ export function useSignup() {
       return res.json();
     },
     onSuccess: () => {
-      // Fresh account — wipe any cached data from a prior session on this browser.
-      queryClient.clear();
+      // Fresh account — drop any prior session's data, then refetch auth so the
+      // signup screen's navigate('/') lands on an authenticated map.
+      queryClient.removeQueries({ queryKey: ['photos'] });
+      queryClient.removeQueries({ queryKey: ['photo-counts'] });
+      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
     },
   });
 }
@@ -84,9 +90,11 @@ export function useLogout() {
       return res.json();
     },
     onSuccess: () => {
-      // Wipe ALL cached data so nothing from this account is visible to the
-      // next account that logs in on the same browser.
-      queryClient.clear();
+      // Remove this account's data so the next account on this browser can't see
+      // it, then refetch auth (→ 401 → null) so ProtectedRoute redirects to login.
+      queryClient.removeQueries({ queryKey: ['photos'] });
+      queryClient.removeQueries({ queryKey: ['photo-counts'] });
+      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
     },
   });
 }
