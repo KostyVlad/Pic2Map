@@ -63,6 +63,15 @@ export default function CountryLayer({ countriesGeoJSON, photoCounts, selectedCo
     return hasPhotos ? { ...STYLE.SELECTED } : { ...STYLE.SELECTED_NO_PHOTOS };
   }
 
+  // Style function for the GeoJSON layer. Selection-aware so the chosen country
+  // keeps its highlight whenever Leaflet (re)applies the style — e.g. after a
+  // photoCounts-driven re-mount or any parent re-render — not only on click.
+  function featureStyle(feature) {
+    const code = extractIso(feature);
+    if (code && code === selectedCodeRef.current) return getSelectedStyle(feature);
+    return getBaseStyle(feature);
+  }
+
   function onEachFeature(feature, layer) {
     const code = extractIso(feature);
     const name = feature.properties.NAME || code;
@@ -139,7 +148,7 @@ export default function CountryLayer({ countriesGeoJSON, photoCounts, selectedCo
   return (
     <GeoJSON
       data={countriesGeoJSON}
-      style={getBaseStyle}
+      style={featureStyle}
       onEachFeature={onEachFeature}
     />
   );
