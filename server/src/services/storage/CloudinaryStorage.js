@@ -30,6 +30,20 @@ export class CloudinaryStorage {
   }
 
   /**
+   * Cloudinary treats a dot in public_id literally AND still appends the format,
+   * producing a `…-display.jpg.jpg` asset that our delivery URL can't match.
+   * So we strip the extension for the public_id and carry the format separately.
+   * @param {string} key  e.g. "<uuid>-display.jpg"
+   * @returns {{ publicId: string, format: string }}
+   */
+  #parseKey(key) {
+    const m = key.match(/\.(jpe?g|png|webp)$/i);
+    const format = m ? m[1].toLowerCase().replace('jpeg', 'jpg') : 'jpg';
+    const publicId = m ? key.slice(0, -m[0].length) : key;
+    return { publicId, format };
+  }
+
+  /**
    * Upload `buffer` under `key` (used as the Cloudinary public_id).
    * Stored as `type: authenticated` so the asset is not publicly reachable.
    * @param {string} key
@@ -37,10 +51,11 @@ export class CloudinaryStorage {
    * @param {string} [mime]
    */
   async put(key, buffer, mime) {
+    const { publicId } = this.#parseKey(key);
     await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         {
-          public_id: key,
+          public_id: publicId,       // extension stripped — Cloudinary appends format itself
           type: 'authenticated',     // not publicly accessible — requires a signed URL
           resource_type: 'image',
           overwrite: false,
@@ -78,10 +93,13 @@ export class CloudinaryStorage {
    * @returns {Promise<{ stream: import('node:stream').Readable, contentType: string } | null>}
    */
   async getReadable(key) {
-    // sign_url + type:authenticated yields a signed delivery URL that cannot be guessed
-    const signedUrl = cloudinary.url(key, {
+    const { publicId, format } = this.#parseKey(key);
+    // sign_url + type:authenticated yields a signed delivery URL that cannot be guessed.
+    // format must be passed explicitly since the public_id has no extension.
+    const signedUrl = cloudinary.url(publicId, {
       type: 'authenticated',
       resource_type: 'image',
+      format,
       sign_url: true,
       secure: true,
     });
@@ -101,7 +119,8 @@ export class CloudinaryStorage {
    */
   async delete(key) {
     try {
-      await cloudinary.uploader.destroy(key, { type: 'authenticated', resource_type: 'image' });
+      const { publicId } = this.#parseKey(key);
+      await cloudinary.uploader.destroy(publicId, { type: 'authenticated', resource_type: 'image' });
     } catch {
       // Best-effort cleanup — ignore failures
     }
