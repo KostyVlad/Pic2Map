@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: checkpoint
-stopped_at: "02-03 Task 2: human-check (live email reset walkthrough with RESEND_API_KEY)"
+status: phase_complete
+stopped_at: "Phase 2 complete & verified (5/5 success criteria). Awaiting go-ahead for Phase 3."
 last_updated: "2026-06-21T00:00:00Z"
-last_activity: "2026-06-21 -- Phase 2 Plan 03 all tasks implemented; paused at Task 2 human email-reset browser walkthrough"
+last_activity: "2026-06-21 -- Phase 2 complete: 02-03 email-reset approved live; verifier 5/5; resend lazy-init fix; 15/15 tests pass"
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 3
-  percent: 40
+  completed_plans: 5
+  percent: 50
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-06-17)
 
 ## Current Position
 
-Phase: 2 (accounts-private-maps) — CHECKPOINT
-Plan: 3 of 3 (all tasks implemented; paused at Task 2 human email-reset walkthrough)
-Status: Awaiting human: live password-reset email walkthrough with RESEND_API_KEY set
-Last activity: 2026-06-21 -- Phase 2 Plan 03 all 2 tasks implemented and committed; paused at human-check
+Phase: 2 (accounts-private-maps) — COMPLETE & VERIFIED
+Plan: 3 of 3 complete; live password-reset walkthrough approved 2026-06-21
+Status: Phase 2 done (verifier 5/5). Next: Phase 3 (EXIF Auto-Placement & Pins) — awaiting go-ahead.
+Last activity: 2026-06-21 -- Phase 2 closed: verifier 5/5; resend lazy-init fix (app boots w/o key, reset.test.js no longer crashes); 15/15 tests pass
 
-Progress: [####░░░░░░] 40% (checkpoint at 02-03 Task 2 human-check)
+Progress: [#####░░░░░] 50% (Phase 2 complete)
 
 ## Performance Metrics
 

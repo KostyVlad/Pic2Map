@@ -16,8 +16,12 @@
 import { Resend } from 'resend';
 import config from '../../config.js';
 
-// Constructed once at module load; RESEND_API_KEY may be empty string in dev
-const resendClient = new Resend(config.RESEND_API_KEY);
+// Lazily constructed on first send. The resend SDK v6 throws "Missing API key"
+// when `new Resend('')` is called, so we must NOT construct it at import time —
+// otherwise importing this module (or app.js) crashes whenever RESEND_API_KEY is
+// unset, taking down server startup and the test harness. Constructing inside
+// sendEmail keeps the empty-key guard below as the real gate.
+let resendClient = null;
 
 /**
  * sendEmail — send a transactional email via Resend.
@@ -29,6 +33,10 @@ export async function sendEmail({ to, subject, html }) {
   if (!config.RESEND_API_KEY) {
     // Log clearly rather than crashing — the route-level catch will handle this.
     throw new Error('Email not configured: RESEND_API_KEY is not set. Add it to server/.env to enable password-reset emails.');
+  }
+
+  if (!resendClient) {
+    resendClient = new Resend(config.RESEND_API_KEY);
   }
 
   const { data, error } = await resendClient.emails.send({

@@ -18,7 +18,7 @@ deletion, upload progress, and mobile polish.
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
 - [x] **Phase 1: Country Map & Per-Country Photos** - Interactive country-boundary map; click a country to upload and view its photos (no accounts) (completed 2026-06-19)
-- [ ] **Phase 2: Accounts & Private Maps** - Sign up/login/logout, per-user data isolation, migrate to private maps
+- [x] **Phase 2: Accounts & Private Maps** - Sign up/login/logout, per-user data isolation, migrate to private maps (completed 2026-06-21)
 - [ ] **Phase 3: EXIF Auto-Placement & Pins** - Read GPS on upload, auto-assign country, pins inside countries with clustering
 - [ ] **Phase 4: Places, Editing & Polish** - Reverse-geocoded cities, edit/move, delete, upload progress, mobile polish
 
@@ -71,7 +71,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [~] 02-03-PLAN.md — Password reset: email adapter (Resend), forgot/reset endpoints (hashed single-use token), forgot/reset screens (AUTH-05) [tasks implemented; awaiting human email-reset walkthrough]
+- [x] 02-03-PLAN.md — Password reset: email adapter (Resend), forgot/reset endpoints (hashed single-use token), forgot/reset screens (AUTH-05) [live email-reset walkthrough approved 2026-06-21]
 
 **UI hint**: yes
 
@@ -114,6 +114,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Country Map & Per-Country Photos | 2/2 | Complete   | 2026-06-19 |
-| 2. Accounts & Private Maps | 2/3 (3rd at checkpoint) | In Progress|  |
+| 2. Accounts & Private Maps | 3/3 | Complete   | 2026-06-21 |
 | 3. EXIF Auto-Placement & Pins | 0/TBD | Not started | - |
 | 4. Places, Editing & Polish | 0/TBD | Not started | - |
