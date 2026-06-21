@@ -6,6 +6,7 @@
  */
 
 import fs from 'node:fs/promises';
+import fsSync from 'node:fs';
 import path from 'node:path';
 
 export class LocalDiskStorage {
@@ -35,6 +36,36 @@ export class LocalDiskStorage {
    */
   getLocalPath(key) {
     return path.join(this.basePath, key);
+  }
+
+  /**
+   * Open a readable stream for `key`, enforcing the path-traversal guard (T-01-PT).
+   * Returns null if the key escapes basePath or the file does not exist.
+   * The route remains storage-agnostic by delegating serving to this method.
+   * @param {string} key
+   * @returns {Promise<{ stream: import('node:stream').Readable, contentType: string } | null>}
+   */
+  async getReadable(key) {
+    const resolvedPath = path.resolve(this.getLocalPath(key));
+    const resolvedBase = path.resolve(this.basePath);
+
+    // Resolved path MUST stay inside basePath (T-01-PT)
+    if (!resolvedPath.startsWith(resolvedBase + path.sep) && resolvedPath !== resolvedBase) {
+      return null;
+    }
+
+    try {
+      await fs.access(resolvedPath);
+    } catch {
+      return null;
+    }
+
+    const ext = path.extname(resolvedPath).toLowerCase();
+    const contentType = ext === '.png' ? 'image/png'
+      : ext === '.webp' ? 'image/webp'
+      : 'image/jpeg'; // default for .jpg and converted HEIC
+
+    return { stream: fsSync.createReadStream(resolvedPath), contentType };
   }
 
   /**

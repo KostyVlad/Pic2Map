@@ -4,6 +4,7 @@ const {
   MONGODB_URI,
   PORT,
   STORAGE_PATH,
+  STORAGE_BACKEND,
   MAX_FILE_BYTES,
   MAX_FILES_PER_BATCH,
   JWT_SECRET,
@@ -11,6 +12,9 @@ const {
   RESEND_API_KEY,
   MAIL_FROM,
   APP_URL,
+  CLOUDINARY_CLOUD_NAME,
+  CLOUDINARY_API_KEY,
+  CLOUDINARY_API_SECRET,
 } = process.env;
 
 if (!MONGODB_URI) {
@@ -28,10 +32,30 @@ if (!JWT_SECRET) {
   );
 }
 
+// Storage backend: 'local' (disk, default) or 'cloudinary'.
+// Credentials are read from the environment only — NEVER hardcode them in source
+// (this repo is public; a committed secret leaks permanently). Set them in server/.env.
+const storageBackend = (STORAGE_BACKEND || 'local').toLowerCase();
+
+if (storageBackend === 'cloudinary') {
+  const missing = [
+    !CLOUDINARY_CLOUD_NAME && 'CLOUDINARY_CLOUD_NAME',
+    !CLOUDINARY_API_KEY && 'CLOUDINARY_API_KEY',
+    !CLOUDINARY_API_SECRET && 'CLOUDINARY_API_SECRET',
+  ].filter(Boolean);
+  if (missing.length) {
+    throw new Error(
+      `STORAGE_BACKEND=cloudinary but missing: ${missing.join(', ')}. ` +
+      'Add them to server/.env (get values from https://console.cloudinary.com/app/settings/api-keys).'
+    );
+  }
+}
+
 const config = Object.freeze({
   MONGODB_URI,
   PORT: Number(PORT) || 3001,
   STORAGE_PATH: STORAGE_PATH || './uploads',
+  STORAGE_BACKEND: storageBackend,
   MAX_FILE_BYTES: Number(MAX_FILE_BYTES) || 26214400,   // 25 MB
   MAX_FILES_PER_BATCH: Number(MAX_FILES_PER_BATCH) || 50,
   JWT_SECRET,
@@ -40,6 +64,9 @@ const config = Object.freeze({
   RESEND_API_KEY: RESEND_API_KEY || '',
   MAIL_FROM: MAIL_FROM || 'onboarding@resend.dev',
   APP_URL: APP_URL || 'http://localhost:5173',
+  CLOUDINARY_CLOUD_NAME: CLOUDINARY_CLOUD_NAME || '',
+  CLOUDINARY_API_KEY: CLOUDINARY_API_KEY || '',
+  CLOUDINARY_API_SECRET: CLOUDINARY_API_SECRET || '',
 });
 
 export default config;

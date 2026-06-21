@@ -8,7 +8,6 @@
 
 import { Router } from 'express';
 import fs from 'node:fs/promises';
-import fsSync from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { upload, validateMagicBytes } from '../middleware/upload.js';
@@ -144,22 +143,13 @@ router.get('/', async (req, res, next) => {
 
 // ---------------------------------------------------------------------------
 // GET /api/photos/file/:key
-// Stream a stored file (display copy or thumbnail)
-// Path-traversal guard: resolved path must stay within STORAGE_PATH (T-01-PT)
+// Stream a stored file (display copy or thumbnail) — storage-backend agnostic.
+// The adapter (local disk or Cloudinary) provides the stream via getReadable();
+// the path-traversal guard lives inside LocalDiskStorage (T-01-PT).
 // ---------------------------------------------------------------------------
 router.get('/file/:key', async (req, res, next) => {
   try {
     const key = decodeURIComponent(req.params.key);
-
-    // UUID-only keys should never contain path separators, but guard anyway
-    const localPath = storage.getLocalPath(key);
-    const resolvedPath = path.resolve(localPath);
-    const resolvedBase = path.resolve(config.STORAGE_PATH);
-
-    // Ensure the resolved path stays inside STORAGE_PATH (T-01-PT)
-    if (!resolvedPath.startsWith(resolvedBase + path.sep) && resolvedPath !== resolvedBase) {
-      return res.status(400).json({ error: 'Invalid file key' });
-    }
 
     // Ownership check (IDOR close — T-02-IDOR-FILE, Pitfall 1)
     // Match either display or thumbnail key; return 404 not 403 — no existence leak
@@ -171,30 +161,22 @@ router.get('/file/:key', async (req, res, next) => {
       return res.status(404).json({ error: 'File not found' });
     }
 
-    // Check file exists on disk
-    try {
-      await fs.access(resolvedPath);
-    } catch {
+    // Delegate to the active storage adapter. Returns null for missing/invalid keys.
+    const opened = await storage.getReadable(key);
+    if (!opened) {
       return res.status(404).json({ error: 'File not found' });
     }
 
-    // Determine content-type from file extension (all served files are JPEG post-ingest)
-    const ext = path.extname(resolvedPath).toLowerCase();
-    const contentType = ext === '.png' ? 'image/png'
-      : ext === '.webp' ? 'image/webp'
-      : 'image/jpeg'; // default for .jpg and converted HEIC
-
-    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Type', opened.contentType);
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); // 1 year — content-addressed keys
 
     // Stream the file — served files are already EXIF-stripped by ingest (PHOTO-02 / T-01-EXIF)
-    const stream = fsSync.createReadStream(resolvedPath);
-    stream.on('error', (streamErr) => {
+    opened.stream.on('error', () => {
       if (!res.headersSent) {
         res.status(500).json({ error: 'File read error' });
       }
     });
-    stream.pipe(res);
+    opened.stream.pipe(res);
   } catch (err) {
     next(err);
   }
