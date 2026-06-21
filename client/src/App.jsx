@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import LoginScreen from './components/auth/LoginScreen.jsx';
 import SignupScreen from './components/auth/SignupScreen.jsx';
+import ForgotPasswordScreen from './components/auth/ForgotPasswordScreen.jsx';
+import ResetPasswordScreen from './components/auth/ResetPasswordScreen.jsx';
 import AccountStrip from './components/AccountStrip.jsx';
 import WorldMap from './components/WorldMap.jsx';
 
@@ -20,21 +22,6 @@ function ProtectedRoute({ children }) {
 }
 
 /**
- * Minimal placeholder for routes that plan 02-03 will replace.
- * Prevents /forgot-password and /reset-password from 404-ing when LoginScreen links to them.
- */
-function ComingSoon({ title }) {
-  return (
-    <div className="flex items-center justify-center min-h-dvh bg-bg">
-      <div className="w-full max-w-sm bg-surface border border-border rounded-lg shadow-sm p-6 mx-4 text-center">
-        <h1 className="text-heading font-semibold text-text mb-4">{title}</h1>
-        <p className="text-body text-text-muted">Coming soon — password reset launches in the next update.</p>
-      </div>
-    </div>
-  );
-}
-
-/**
  * App — root component.
  *
  * Wraps everything with BrowserRouter + AuthProvider (AuthProvider must be inside
@@ -43,8 +30,8 @@ function ComingSoon({ title }) {
  * Routes:
  *   /login            → LoginScreen (public)
  *   /signup           → SignupScreen (public)
- *   /forgot-password  → placeholder (plan 02-03)
- *   /reset-password   → placeholder (plan 02-03)
+ *   /forgot-password  → ForgotPasswordScreen (public, plan 02-03)
+ *   /reset-password   → ResetPasswordScreen (public, reads ?token= query param, plan 02-03)
  *   /                 → ProtectedRoute → AccountStrip + WorldMap
  *   *                 → Navigate to /
  */
@@ -55,8 +42,8 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginScreen />} />
           <Route path="/signup" element={<SignupScreen />} />
-          <Route path="/forgot-password" element={<ComingSoon title="Reset password" />} />
-          <Route path="/reset-password" element={<ComingSoon title="Choose a new password" />} />
+          <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
+          <Route path="/reset-password" element={<ResetPasswordScreen />} />
           <Route
             path="/"
             element={

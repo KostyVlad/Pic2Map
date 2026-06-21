@@ -84,3 +84,52 @@ export function useLogout() {
     },
   });
 }
+
+/**
+ * useForgotPassword — POST /api/auth/forgot-password
+ *
+ * The server ALWAYS returns 200 regardless of whether the email exists (no enumeration).
+ * The caller always shows the same success message after submission.
+ * Surface server error messages for unexpected failures (e.g. rate limit).
+ */
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: async ({ email }) => {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Request failed');
+      }
+      return res.json();
+    },
+  });
+}
+
+/**
+ * useResetPassword — POST /api/auth/reset-password
+ *
+ * Accepts { token, password }. On 400 the server returns "Invalid or expired token"
+ * or a password validation error — surface these to the caller.
+ */
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: async ({ token, password }) => {
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password }),
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Reset failed');
+      }
+      return res.json();
+    },
+  });
+}
