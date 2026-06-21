@@ -8,12 +8,14 @@
  * spurious internal border line.
  *
  * This script dissolves the subunits of a curated set of countries back into a
- * single feature per country (geometry unioned so the internal border vanishes),
- * keyed by ADM0_A3. Island / overseas territories (Hawaii, Sicily, Canary Is.,
- * French Guiana, …) are deliberately LEFT split — they should stay distinct.
+ * single feature per country (geometry unioned so the internal border vanishes).
+ * Island / overseas territories (Hawaii, Sicily, Canary Is., French Guiana, …)
+ * are deliberately LEFT split — they should stay distinct.
  *
- * Run: node scripts/merge-country-subunits.cjs
- * Re-runnable: skips countries already merged to a single feature.
+ * Territory overrides (politically corrected vs. the raw dataset):
+ *   - Crimea (SU_A3 RUC, which NE codes as ADM0_A3 RUS) is assigned to UKRAINE.
+ *
+ * Run: node scripts/merge-country-subunits.cjs   (run against the ORIGINAL dataset)
  */
 
 const fs = require('node:fs');
@@ -22,10 +24,10 @@ const { union, featureCollection } = require('@turf/turf');
 
 const GEOJSON = path.join(__dirname, '..', 'public', 'countries.geojson');
 
-// ADM0_A3 → display name. These are single sovereign states that map_subunits
-// splits across contiguous land (NOT separate islands). Each becomes one country.
-const MERGE = {
+// targetKey → display name. Each becomes one dissolved country feature.
+const NAMES = {
   RUS: 'Russia',
+  UKR: 'Ukraine',
   BEL: 'Belgium',
   GBR: 'United Kingdom',
   BIH: 'Bosnia and Herzegovina',
@@ -38,27 +40,40 @@ const MERGE = {
   PRK: 'North Korea',
 };
 
+/**
+ * Decide which merge group (if any) a feature belongs to.
+ * Returns the target country key, or null to leave the feature untouched.
+ */
+function targetKey(f) {
+  const su = f.properties.SU_A3;
+  const adm = f.properties.ADM0_A3;
+  if (su === 'RUC') return 'UKR';        // Crimea → Ukraine (not Russia)
+  if (adm === 'RUS') return 'RUS';       // remaining Russia subunits → Russia
+  if (adm === 'UKR') return 'UKR';       // mainland Ukraine → Ukraine (unions with Crimea)
+  if (NAMES[adm]) return adm;            // other contiguous-mainland splits
+  return null;
+}
+
 const gj = JSON.parse(fs.readFileSync(GEOJSON, 'utf8'));
 
 const merged = [];
-const groups = new Map(); // ADM0_A3 -> features[]
+const groups = new Map(); // targetKey -> features[]
 
 for (const f of gj.features) {
-  const adm = f.properties.ADM0_A3;
-  if (MERGE[adm]) {
-    if (!groups.has(adm)) groups.set(adm, []);
-    groups.get(adm).push(f);
+  const key = targetKey(f);
+  if (key) {
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(f);
   } else {
     merged.push(f); // untouched (islands/territories stay split)
   }
 }
 
-for (const [adm, feats] of groups) {
+for (const [key, feats] of groups) {
   let geometry;
   if (feats.length === 1) {
     geometry = feats[0].geometry;
   } else {
-    // Union all subunit polygons → dissolves shared internal borders.
     let acc = feats[0];
     for (let i = 1; i < feats.length; i++) {
       acc = union(featureCollection([acc, feats[i]]));
@@ -67,10 +82,10 @@ for (const [adm, feats] of groups) {
   }
   merged.push({
     type: 'Feature',
-    properties: { NAME: MERGE[adm], SU_A3: adm, GU_A3: adm, ADM0_A3: adm },
+    properties: { NAME: NAMES[key], SU_A3: key, GU_A3: key, ADM0_A3: key },
     geometry,
   });
-  console.log(`Merged ${adm} (${MERGE[adm]}): ${feats.length} subunit(s) → 1 feature`);
+  console.log(`Merged ${key} (${NAMES[key]}): ${feats.length} subunit(s) → 1 feature`);
 }
 
 gj.features = merged;
