@@ -4,14 +4,17 @@
  * UI-SPEC: grid-cols-3, gap-1, 1:1 aspect-ratio thumbnails with 4px radius.
  * Clicking a thumbnail opens yet-another-react-lightbox with the display-size image.
  * Empty state: "No photos yet" heading (UI-SPEC Copywriting).
- * Zoom and thumbnail strip disabled in Phase 1 (UI-SPEC Lightbox).
+ * A Delete button in the lightbox toolbar removes the currently viewed photo
+ * (POL-04) after a confirmation, then closes the lightbox.
  */
 
 import { useState } from 'react';
 import Lightbox from 'yet-another-react-lightbox';
+import { useDeletePhoto } from '../api/photos.js';
 
-export default function PhotoGallery({ photos = [] }) {
+export default function PhotoGallery({ photos = [], countryCode }) {
   const [lightboxIndex, setLightboxIndex] = useState(-1);
+  const { mutate: deletePhoto, isPending: isDeleting } = useDeletePhoto();
 
   if (photos.length === 0) {
     return (
@@ -25,6 +28,16 @@ export default function PhotoGallery({ photos = [] }) {
     src: `/api/photos/file/${encodeURIComponent(p.storageKey)}`,
     alt: p.originalFilename || 'Photo',
   }));
+
+  function handleDelete() {
+    const photo = photos[lightboxIndex];
+    if (!photo || isDeleting) return;
+    if (!window.confirm('Delete this photo? This cannot be undone.')) return;
+    deletePhoto(
+      { id: photo._id, countryCode: countryCode || photo.countryCode },
+      { onSuccess: () => setLightboxIndex(-1) }
+    );
+  }
 
   return (
     <>
@@ -53,6 +66,21 @@ export default function PhotoGallery({ photos = [] }) {
         close={() => setLightboxIndex(-1)}
         slides={slides}
         on={{ view: ({ index }) => setLightboxIndex(index) }}
+        toolbar={{
+          buttons: [
+            <button
+              key="delete"
+              type="button"
+              className="yarl__button"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              aria-label="Delete photo"
+            >
+              {isDeleting ? 'Deleting…' : 'Delete'}
+            </button>,
+            'close',
+          ],
+        }}
       />
     </>
   );

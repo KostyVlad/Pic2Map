@@ -61,7 +61,7 @@ export default function CountrySidebar({ countryCode, countryName, onClose }) {
         {isLoading ? (
           <p className="p-4 text-label text-text-muted text-center">Loading photos…</p>
         ) : (
-          <PhotoGallery photos={photos} />
+          <PhotoGallery photos={photos} countryCode={countryCode} />
         )}
       </div>
     </div>

@@ -174,4 +174,34 @@ router.get('/file/:key', async (req, res, next) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// DELETE /api/photos/:id
+// Delete a photo the caller owns: remove both stored files + the metadata doc.
+// Ownership-scoped by userId; non-owner / unknown id → 404 (no existence leak).
+// ---------------------------------------------------------------------------
+router.delete('/:id', async (req, res, next) => {
+  try {
+    // Scope by userId so one user can never delete another's photo (IDOR)
+    const photo = await Photo.findOne({ _id: req.params.id, userId: req.userId });
+    if (!photo) {
+      return res.status(404).json({ error: 'Photo not found' });
+    }
+
+    // Best-effort storage cleanup (display + thumbnail). Adapter.delete is a no-op
+    // if the object is already gone, so a missing file won't block the DB delete.
+    await storage.delete(photo.storageKey);
+    await storage.delete(photo.thumbnailKey);
+
+    await photo.deleteOne();
+
+    return res.status(200).json({ ok: true });
+  } catch (err) {
+    // Malformed ObjectId → CastError; treat as not-found (no existence leak)
+    if (err.name === 'CastError') {
+      return res.status(404).json({ error: 'Photo not found' });
+    }
+    next(err);
+  }
+});
+
 export default router;
