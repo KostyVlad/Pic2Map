@@ -1,7 +1,7 @@
 /**
  * /api/photos router
  *
- * POST /api/photos       — upload one or more photos to a country
+ * POST /api/photos       — upload one or more photos (global or per-country)
  * GET  /api/photos       — list photos for a country (?countryCode=XX)
  * GET  /api/photos/file/:key — stream a stored file (display or thumbnail)
  */
@@ -13,6 +13,8 @@ import mongoose from 'mongoose';
 import { upload, validateMagicBytes } from '../middleware/upload.js';
 import { ingestPhoto } from '../services/ingest.js';
 import { storage } from '../services/storage/index.js';
+import { extractGps, isValidGps } from '../services/gps.js';
+import { resolveCountry } from '../services/countryLookup.js';
 import Photo from '../models/Photo.js';
 import config from '../config.js';
 
@@ -20,24 +22,27 @@ const router = Router();
 
 // ---------------------------------------------------------------------------
 // POST /api/photos
+//
+// Accepts both:
+//   - Global upload (no countryCode in body): server reads GPS from each file
+//     and auto-assigns country via point-in-polygon. Files with no resolvable
+//     GPS are skipped into the noGps list (D-03, D-04).
+//   - Per-country upload (countryCode in body): manual assignment wins (D-02).
+//     GPS coords stored only when GPS resolves to the SAME country (Pitfall 10 / Option B).
 // ---------------------------------------------------------------------------
 router.post('/', upload.array('photos', config.MAX_FILES_PER_BATCH), async (req, res, next) => {
   try {
     const { countryCode, countryName } = req.body;
-    if (!countryCode) {
-      // Clean up any files that landed before the error
-      if (req.files) {
-        await Promise.all(req.files.map(f => fs.unlink(f.path).catch(() => {})));
-      }
-      return res.status(400).json({ error: 'countryCode required' });
-    }
 
+    // Phase 3: countryCode is no longer always required — global upload omits it (Pitfall 9)
+    // Keep only the "at least one file" guard.
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'At least one file is required' });
     }
 
     const results = [];
-    const normalizedCode = countryCode.toUpperCase().trim();
+    // null = global upload path; set = per-country manual upload
+    const normalizedCode = countryCode?.toUpperCase().trim() || null;
 
     for (const file of req.files) {
       let rawBuffer;
@@ -59,10 +64,42 @@ router.post('/', upload.array('photos', config.MAX_FILES_PER_BATCH), async (req,
         continue;
       }
 
+      // Phase 3: read GPS from raw buffer BEFORE ingest strips EXIF (D-01, Pitfall 2, Pitfall 3)
+      // Must be called on the original HEIC/JPEG buffer — not post-heic-convert.
+      const gpsResult = await extractGps(rawBuffer);
+      const validGps = gpsResult && isValidGps(gpsResult.lat, gpsResult.lng) ? gpsResult : null;
+      // T-03-GPS-INJ: gate coords through isValidGps before resolveCountry or storage
+      let resolvedCountry = validGps ? resolveCountry(validGps.lat, validGps.lng) : null;
+
+      let finalCountryCode = normalizedCode;
+      let finalCountryName = countryName || '';
+
+      if (!normalizedCode) {
+        // Global upload path — GPS resolution determines country assignment
+        if (resolvedCountry) {
+          finalCountryCode = resolvedCountry.code;
+          finalCountryName = resolvedCountry.name;
+        } else {
+          // No GPS or no polygon match (ocean/Antarctica/disputed — D-04)
+          // Report as noGps, skip placement (D-03: nothing silently dropped)
+          await fs.unlink(file.path).catch(() => {});
+          results.push({ file: file.originalname, noGps: true });
+          continue;
+        }
+      } else {
+        // Per-country (manual) upload — country from body always wins (D-02)
+        // Store GPS coords only if GPS resolves to the SAME country (Pitfall 10, Option B)
+        // If GPS disagrees, null out resolvedCountry so location stays unset
+        if (resolvedCountry && resolvedCountry.code !== normalizedCode) {
+          resolvedCountry = null;
+        }
+      }
+
       // Run the ingest pipeline (HEIC conversion + resize + EXIF strip)
+      // EXIF is stripped here — GPS was already read above from rawBuffer (D-01)
       let thumbBuffer, displayBuffer;
       try {
-        ({ thumbBuffer, displayBuffer } = await ingestPhoto(rawBuffer, detectedMime, normalizedCode));
+        ({ thumbBuffer, displayBuffer } = await ingestPhoto(rawBuffer, detectedMime, finalCountryCode));
       } catch (ingestErr) {
         await fs.unlink(file.path).catch(() => {});
         results.push({ file: file.originalname, error: `Image processing failed: ${ingestErr.message}` });
@@ -87,24 +124,53 @@ router.post('/', upload.array('photos', config.MAX_FILES_PER_BATCH), async (req,
       await fs.unlink(file.path).catch(() => {});
 
       // Persist metadata in MongoDB — never binary data (PHOTO-05 / T-01-BIN)
-      // userId from requireAuth middleware scopes the photo to the authenticated user (D-03)
+      // userId from requireAuth middleware scopes the photo to the authenticated user
+      // (T-03-IDOR-UPLOAD: global-upload photos are still scoped to the uploader)
       const photo = await Photo.create({
-        countryCode: normalizedCode,
-        countryName: countryName || '',
+        countryCode: finalCountryCode,
+        countryName: finalCountryName,
         storageKey,
         thumbnailKey,
         mimeType: 'image/jpeg',      // always JPEG after ingest pipeline
         originalFilename: file.originalname,
         fileSize: rawBuffer.length,
         userId: req.userId,
+        // Phase 3: store GPS point only when GPS resolves correctly (Pitfall 4: [lng, lat] GeoJSON order)
+        ...(resolvedCountry && validGps && {
+          location: {
+            type: 'Point',
+            coordinates: [validGps.lng, validGps.lat], // GeoJSON: [longitude, latitude]
+          },
+        }),
       });
 
       const thumbnailUrl = await storage.getUrl(thumbnailKey);
-      results.push({ photoId: photo._id, thumbnailUrl });
+      results.push({
+        photoId: photo._id,
+        thumbnailUrl,
+        countryCode: finalCountryCode,
+        countryName: finalCountryName,
+      });
     }
 
-    const uploaded = results.filter(r => !r.error).length;
-    res.status(201).json({ uploaded, results });
+    // Phase 3: enriched response shape (D-03 — support auto-placed vs no-GPS reporting)
+    const placed = results.filter(r => r.photoId && r.countryCode);
+    const noGpsCount = results.filter(r => r.noGps).length;
+
+    // Group placed photos by country for GpsResultSummary "N photos auto-placed in [Country]"
+    const placedByCountry = placed.reduce((acc, r) => {
+      const key = r.countryCode;
+      if (!acc[key]) acc[key] = { countryCode: key, countryName: r.countryName, count: 0 };
+      acc[key].count++;
+      return acc;
+    }, {});
+
+    res.status(201).json({
+      uploaded: placed.length,
+      placed: Object.values(placedByCountry), // [{ countryCode, countryName, count }]
+      noGps: noGpsCount,
+      results,                                // per-file detail (backward compat)
+    });
   } catch (err) {
     next(err);
   }
@@ -121,9 +187,10 @@ router.get('/', async (req, res, next) => {
     }
 
     // Scope to authenticated user (AUTH-04 / D-03) — only the owner's photos are returned
+    // Phase 3: include 'location' field for CountryPinMap pins (Pattern 5)
     const photos = await Photo.find({ countryCode: countryCode.toUpperCase(), userId: req.userId })
       .sort({ createdAt: -1 })
-      .select('_id storageKey thumbnailKey originalFilename countryCode countryName createdAt');
+      .select('_id storageKey thumbnailKey originalFilename countryCode countryName createdAt location');
 
     res.json(photos);
   } catch (err) {
