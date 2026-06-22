@@ -5,6 +5,7 @@ import SignupScreen from './components/auth/SignupScreen.jsx';
 import ForgotPasswordScreen from './components/auth/ForgotPasswordScreen.jsx';
 import ResetPasswordScreen from './components/auth/ResetPasswordScreen.jsx';
 import AccountStrip from './components/AccountStrip.jsx';
+import GlobalUploadButton from './components/GlobalUploadButton.jsx';
 import WorldMap from './components/WorldMap.jsx';
 
 /**
@@ -49,6 +50,7 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <AccountStrip />
+                <GlobalUploadButton />
                 <WorldMap />
               </ProtectedRoute>
             }

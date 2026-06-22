@@ -61,6 +61,49 @@ export function useUploadPhotos() {
 }
 
 /**
+ * Upload photos globally (no country pre-selected).
+ * The server reads GPS from each file and auto-assigns the country via
+ * point-in-polygon. Files with no resolvable GPS are reported in noGps.
+ *
+ * On success: invalidates ['photos', countryCode] for EACH placed country
+ * plus ['photo-counts'] so the map badges refresh.
+ *
+ * @returns {import('@tanstack/react-query').UseMutationResult}
+ */
+export function useUploadGlobal() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ files }) => {
+      const formData = new FormData();
+      // No countryCode — global upload; server resolves from GPS
+      for (const file of files) {
+        formData.append('photos', file);
+      }
+
+      const res = await fetch('/api/photos', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Upload failed. Check your connection and try again.');
+      }
+      return res.json();
+    },
+    onSuccess: (data) => {
+      // Invalidate each country that received auto-placed photos
+      for (const { countryCode } of data.placed ?? []) {
+        queryClient.invalidateQueries({ queryKey: ['photos', countryCode] });
+      }
+      queryClient.invalidateQueries({ queryKey: ['photo-counts'] });
+    },
+  });
+}
+
+/**
  * Delete several photos at once.
  * @returns {import('@tanstack/react-query').UseMutationResult}
  */
