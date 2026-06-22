@@ -2,8 +2,11 @@
  * Ingest pipeline tests — node --test
  *
  * Covers:
- *  - extractIso: ISO_A2 '-99' fallback to ISO_A2_EH (France/Norway fix)
- *  - extractIso: normal ISO_A2 pass-through
+ *  - extractIso: SU_A3 pass-through (primary key)
+ *  - extractIso: SU_A3 uppercasing
+ *  - extractIso: GU_A3 fallback when SU_A3 is '-99'
+ *  - extractIso: ADM0_A3 fallback when SU_A3 and GU_A3 are '-99'
+ *  - extractIso: NAME slug last resort
  *  - ingestPhoto: returns { thumbBuffer, displayBuffer } both valid JPEGs
  *  - ingestPhoto: thumbBuffer width <= 300px; displayBuffer width <= 1200px
  *  - ingestPhoto: NO exif block on returned buffers (EXIF stripped)
@@ -43,67 +46,67 @@ async function makeTestJpeg(width = 400, height = 300) {
 }
 
 // ---------------------------------------------------------------------------
-// extractIso tests
+// extractIso tests — SU_A3 chain (replaces old ISO_A2 tests per Pitfall 1 fix)
 // ---------------------------------------------------------------------------
 describe('extractIso', () => {
-  test('returns ISO_A2_EH for feature with ISO_A2 = "-99" (France fix)', () => {
+  test('returns SU_A3 for a normal feature (France metropolitan = FXX)', () => {
     const feature = {
       properties: {
-        ISO_A2: '-99',
-        ISO_A2_EH: 'FR',
-        ISO_A3: 'FRA',
+        SU_A3: 'FXX',
+        GU_A3: 'FXX',
+        ADM0_A3: 'FRA',
         NAME: 'France',
       },
     };
     const code = extractIso(feature);
-    assert.equal(code, 'FR');
+    assert.equal(code, 'FXX');
   });
 
-  test('returns ISO_A2 for a normal feature (US)', () => {
+  test('returns SU_A3 uppercased', () => {
     const feature = {
       properties: {
-        ISO_A2: 'US',
-        ISO_A2_EH: 'US',
-        ISO_A3: 'USA',
+        SU_A3: 'usa',
+        GU_A3: 'usa',
+        ADM0_A3: 'usa',
         NAME: 'United States of America',
       },
     };
     const code = extractIso(feature);
-    assert.equal(code, 'US');
+    assert.equal(code, 'USA');
   });
 
-  test('returns ISO_A2 uppercased', () => {
+  test('falls back to GU_A3 when SU_A3 is "-99"', () => {
     const feature = {
       properties: {
-        ISO_A2: 'gb',
-        ISO_A2_EH: 'gb',
-        ISO_A3: 'GBR',
-        NAME: 'United Kingdom',
-      },
-    };
-    const code = extractIso(feature);
-    assert.equal(code, 'GB');
-  });
-
-  test('falls back to ISO_A3 slice when ISO_A2 and ISO_A2_EH are both "-99"', () => {
-    const feature = {
-      properties: {
-        ISO_A2: '-99',
-        ISO_A2_EH: '-99',
-        ISO_A3: 'NOR',
+        SU_A3: '-99',
+        GU_A3: 'NOR',
+        ADM0_A3: 'NOR',
         NAME: 'Norway',
       },
     };
     const code = extractIso(feature);
-    assert.equal(code, 'NO');
+    assert.equal(code, 'NOR');
   });
 
-  test('falls back to NAME slug when all ISO fields are absent', () => {
+  test('falls back to ADM0_A3 when SU_A3 and GU_A3 are "-99"', () => {
     const feature = {
       properties: {
-        ISO_A2: '-99',
-        ISO_A2_EH: '-99',
-        ISO_A3: '-99',
+        SU_A3: '-99',
+        GU_A3: '-99',
+        ADM0_A3: 'DEU',
+        NAME: 'Germany',
+      },
+    };
+    const code = extractIso(feature);
+    assert.equal(code, 'DEU');
+  });
+
+  test('falls back to NAME slug when all A3 fields are absent or "-99"', () => {
+    const feature = {
+      properties: {
+        SU_A3: '-99',
+        GU_A3: '-99',
+        ADM0_A3: '-99',
         NAME: 'Test Land',
       },
     };
