@@ -88,7 +88,15 @@ Plans:
   3. Drilling into a country shows photo pins at their exact coordinates; nearby pins cluster and expand on zoom.
   4. Photos without GPS are accepted and fall back to the manual per-country assignment from Phase 1 — nothing is silently dropped.
 
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+**Wave 1**
+
+- [ ] 03-01-PLAN.md — Global GPS upload: SU_A3 server keying fix, exifr GPS read + turf point-in-polygon auto-placement, enriched upload route/response, GlobalUploadButton + GpsResultSummary (GEO-01/02, GEO-05 reporting)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 03-02-PLAN.md — Pins & clustering: usePhotos location, PhotoPinMarker/ClusterMarker/PinPopup DivIcons, CountryPinMap (use-supercluster + react-leaflet 5) wired into CountrySidebar, human-verify checkpoint (GEO-03/04, GEO-05 fallback)
 
 ### Phase 4: Places, Editing & Polish
 
@@ -115,5 +123,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Country Map & Per-Country Photos | 2/2 | Complete   | 2026-06-19 |
 | 2. Accounts & Private Maps | 3/3 | Complete   | 2026-06-21 |
-| 3. EXIF Auto-Placement & Pins | 0/TBD | Not started | - |
+| 3. EXIF Auto-Placement & Pins | 0/2 | Planned | - |
 | 4. Places, Editing & Polish | 0/TBD | Not started | - |
