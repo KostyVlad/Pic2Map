@@ -33,11 +33,14 @@ and upload progress are OUT of scope (Phase 4 / POL).
     with exact coordinates stored for its pin. No manual country pick for GPS photos.
   - **Existing per-country panel upload stays** as the manual path (GEO-05) for photos
     without GPS — opening a country IS the manual country assignment.
-- **D-03:** In the global upload, only photos with a resolved country are auto-placed.
-  Photos without usable GPS are NOT placed automatically; the result summary reports them
-  (e.g. "N photos have no location — open a country and add them there") so nothing is
-  silently dropped (GEO-05). The existing `GpsResultSummary` area in the upload UI
-  (UI-SPEC) surfaces this.
+- **D-03:** In the global upload, photos with a resolved country are auto-placed. Photos
+  without usable GPS are NOT auto-placed and MUST NOT be lost. **Revised 2026-06-22 (from
+  user feedback at the Phase 3 checkpoint):** instead of discarding them with only a toast,
+  the client keeps the in-browser File objects and shows an inline country picker — the
+  user selects a country and those exact files are uploaded to it via the per-country
+  endpoint (no re-selecting from disk). This honors GEO-05 ("nothing silently dropped")
+  literally. (Originally the plan only reported a count and told the user to re-upload via
+  a country panel; that lost the files and confused the user.)
 
 ### GPS that resolves to no country (GEO-02 edge case)
 - **D-04:** Coordinates that fall outside every country polygon (ocean, Antarctica,

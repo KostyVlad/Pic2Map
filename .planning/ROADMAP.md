@@ -96,7 +96,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 03-02-PLAN.md — Pins & clustering: usePhotos location, PhotoPinMarker/ClusterMarker/PinPopup DivIcons, CountryPinMap (use-supercluster + react-leaflet 5) wired into CountrySidebar, human-verify checkpoint (GEO-03/04, GEO-05 fallback) [Tasks 1-2 complete; awaiting human-verify Task 3]
+- [x] 03-02-PLAN.md — Pins & clustering: usePhotos location, PhotoPinMarker/ClusterMarker/PinPopup DivIcons, CountryPinMap (use-supercluster + react-leaflet 5) wired into CountrySidebar, human-verify checkpoint (GEO-03/04, GEO-05 fallback) [human-verify approved 2026-06-22]
 
 ### Phase 4: Places, Editing & Polish
 
