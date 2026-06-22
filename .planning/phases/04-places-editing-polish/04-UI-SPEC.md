@@ -125,7 +125,7 @@ Visual specification:
 - Left edge: 3px solid `--color-accent` (#3b82f6) — left border accent stripe
 - Text: `text-label` (14px), weight 600, `--color-text` (#111827)
 - Format: "[City / Place Name]" — just the place name, no country repetition
-- Right side: small pill badge — `text-label` (12px), weight 600, `--color-accent` text, no background, no border — showing photo count "N"
+- Right side: small pill badge — `text-label` (14px), weight 600, `--color-text-muted` text, no background, no border — showing photo count "N" (visually subordinate via muted color, not reduced size — must stay within the locked 4-size scale)
 - No expand/collapse — groups are always open in Phase 4 (collapsible is a v2 enhancement)
 - "Other photos" group header: same visual treatment, label is "Other photos"
 
@@ -197,7 +197,7 @@ Modal structure:
 Modal header:
 - `flex items-center justify-between px-6 py-4 border-b border-border flex-shrink-0`
 - Heading: "Edit photo location" — `text-heading` (20px), weight 600, `--color-text`
-- Close button: "Cancel" text — `text-label` (14px), `--color-text-muted`, `min-h-11 min-w-11`, top-right, same style as existing sidebar close button
+- Close button: "Close" text — `text-label` (14px), `--color-text-muted`, `min-h-11 min-w-11`, top-right, same style as existing sidebar close button
 
 Modal body (two sections):
 
@@ -205,7 +205,7 @@ Modal body (two sections):
 - Label: "Move to a different country" — `text-label` (14px), weight 600, `--color-text`, `mb-1`
 - `<select>` dropdown: same styling as existing GlobalUploadButton country select — `w-full min-h-11 px-2 bg-surface text-body text-text border border-border rounded-md outline-none focus:ring-2 focus:ring-accent`
 - Placeholder option: "Keep current country ([CountryName])" — selected by default
-- Changing the select immediately enables the "Save" button; no live preview
+- Changing the select immediately enables the "Save location" button; no live preview
 
 **Section B — Reposition pin (GPS-only):**
 - Shown only when the photo has GPS coordinates (`lat` + `lng` present)
@@ -218,9 +218,9 @@ Modal body (two sections):
 
 Modal footer:
 - `flex items-center justify-end gap-2 px-6 py-4 border-t border-border flex-shrink-0`
-- "Cancel" button: `min-h-11 px-4 rounded-md text-label font-semibold text-text-muted hover:text-text transition-colors focus:outline-none focus:ring-2 focus:ring-accent`
-- "Save" button: `min-h-11 px-4 rounded-md text-label font-semibold text-white bg-accent hover:bg-accent-dark transition-colors focus:outline-none focus:ring-2 focus:ring-accent` — disabled (opacity-50, cursor-not-allowed) when neither section has a change; enabled when country changed OR pin dragged
-- While saving: "Save" button shows "Saving…", disabled; modal stays open until server 200; on success modal closes
+- "Discard" button: `min-h-11 px-4 rounded-md text-label font-semibold text-text-muted hover:text-text transition-colors focus:outline-none focus:ring-2 focus:ring-accent`
+- "Save location" button: `min-h-11 px-4 rounded-md text-label font-semibold text-white bg-accent hover:bg-accent-dark transition-colors focus:outline-none focus:ring-2 focus:ring-accent` — disabled (opacity-50, cursor-not-allowed) when neither section has a change; enabled when country changed OR pin dragged
+- While saving: "Save location" button shows "Saving…", disabled; modal stays open until server 200; on success modal closes
 
 Error state in modal:
 - Inline error below footer buttons: `text-label` (14px), `--color-destructive`, role="alert" — "Save failed. Check your connection and try again."
@@ -285,8 +285,8 @@ These are specific layout and interaction contracts for the existing component s
 1. User clicks a pin on the CountryPinMap → PinPopup opens
 2. User clicks "Edit location" button in PinPopup → PinPopup closes, PhotoEditModal opens
 3. Modal shows Section A (country select) and — if photo has GPS — Section B (mini map with current pin)
-4. User picks a new country in the select — "Save" button becomes enabled
-5. User clicks "Save" → loading state
+4. User picks a new country in the select — "Save location" button becomes enabled
+5. User clicks "Save location" → loading state
 6. Server PATCH updates `countryCode` (and optionally `lat`/`lng` if pin was also dragged)
 7. React Query invalidates both the old and new country's photo lists
 8. Modal closes; CountryPinMap and PhotoGallery for the old country no longer show this photo
@@ -298,8 +298,8 @@ These are specific layout and interaction contracts for the existing component s
 2. User drags the pin in Section B mini-map to the new position
 3. Drag cursor active while dragging; new coordinates captured on dragend
 4. Country select in Section A remains unchanged (user is just moving pin within same country)
-5. "Save" button enabled
-6. User clicks "Save" → server PATCH updates `lat`, `lng` (same `countryCode`)
+5. "Save location" button enabled
+6. User clicks "Save location" → server PATCH updates `lat`, `lng` (same `countryCode`)
 7. React Query invalidates the country's photos; CountryPinMap re-renders with pin at new position
 
 ### Flow 5: Per-file upload progress (POL-05)
@@ -331,9 +331,10 @@ All Phase 3 copy is inherited unchanged. Phase 4 additions:
 | Section A label | "Move to a different country" |
 | Section A default select option | "Keep current country ([CountryName])" |
 | Section B label | "Reposition pin" |
-| Save button (idle) | "Save" |
+| Save button (idle) | "Save location" |
 | Save button (in-flight) | "Saving…" |
-| Cancel button (modal) | "Cancel" |
+| Discard button (modal footer) | "Discard" |
+| Close button (modal header) | "Close" |
 | Modal save error | "Save failed. Check your connection and try again." |
 | Mobile drag handle (aria) | "Drag to resize panel" (aria-label on handle strip) |
 | Empty gallery (no photos, no groups) | "No photos yet" (inherited — unchanged from Phase 1) |
