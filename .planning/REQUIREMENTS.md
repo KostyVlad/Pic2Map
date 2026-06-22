@@ -34,11 +34,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### EXIF Auto-Placement & Pins (GEO)
 
-- [ ] **GEO-01**: On upload, service reads GPS coordinates from photo EXIF
-- [ ] **GEO-02**: Service auto-assigns the country from coordinates (point-in-polygon) — no manual country pick needed when GPS is present
+- [x] **GEO-01**: On upload, service reads GPS coordinates from photo EXIF
+- [x] **GEO-02**: Service auto-assigns the country from coordinates (point-in-polygon) — no manual country pick needed when GPS is present
 - [ ] **GEO-03**: Drilling into a country shows photo pins at their exact coordinates
 - [ ] **GEO-04**: Nearby pins cluster into a single marker and expand on zoom
-- [ ] **GEO-05**: Photos without GPS fall back to manual country assignment (the Phase 1 flow)
+- [x] **GEO-05**: Photos without GPS fall back to manual country assignment (the Phase 1 flow)
 
 ### Places, Editing & Polish (POL)
 
@@ -106,11 +106,11 @@ Which phases cover which requirements. Populated during roadmap creation.
 | AUTH-03 | Phase 2 | Pending |
 | AUTH-04 | Phase 2 | Pending |
 | AUTH-05 | Phase 2 | Pending |
-| GEO-01 | Phase 3 | Pending |
-| GEO-02 | Phase 3 | Pending |
+| GEO-01 | Phase 3 | Complete |
+| GEO-02 | Phase 3 | Complete |
 | GEO-03 | Phase 3 | Pending |
 | GEO-04 | Phase 3 | Pending |
-| GEO-05 | Phase 3 | Pending |
+| GEO-05 | Phase 3 | Complete |
 | POL-01 | Phase 4 | Pending |
 | POL-02 | Phase 4 | Pending |
 | POL-03 | Phase 4 | Pending |
@@ -119,6 +119,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | POL-06 | Phase 4 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 27 total (Phase 1: 11 Complete)
 - Mapped to phases: 27
 - Unmapped: 0

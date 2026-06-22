@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Phase 3 context gathered
-last_updated: "2026-06-21T16:54:02.179Z"
-last_activity: "2026-06-21 -- Phase 2 closed: verifier 5/5; resend lazy-init fix (app boots w/o key, reset.test.js no longer crashes); 15/15 tests pass"
+status: executing
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-06-22T08:20:23.813Z"
+last_activity: 2026-06-22 -- Phase 03 execution started
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 7
+  completed_plans: 6
   percent: 50
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-17)
 
 **Core value:** Browse your travels on a world map organized by the countries you've visited — click a country to add and view its photos — with photos auto-placing by GPS over time.
-**Current focus:** Phase 2 — accounts-private-maps
+**Current focus:** Phase 03 — exif-auto-placement-pins
 
 ## Current Position
 
-Phase: 2 (accounts-private-maps) — COMPLETE & VERIFIED
-Plan: 3 of 3 complete; live password-reset walkthrough approved 2026-06-21
-Status: Phase 2 done (verifier 5/5). Next: Phase 3 (EXIF Auto-Placement & Pins) — awaiting go-ahead.
-Last activity: 2026-06-21 -- Phase 2 closed: verifier 5/5; resend lazy-init fix (app boots w/o key, reset.test.js no longer crashes); 15/15 tests pass
+Phase: 03 (exif-auto-placement-pins) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-06-22 -- Phase 03 execution started
 
 Progress: [#####░░░░░] 50% (Phase 2 complete)
 
@@ -52,6 +52,7 @@ Progress: [#####░░░░░] 50% (Phase 2 complete)
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 03-exif-auto-placement-pins P01 | 7min | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,8 @@ Recent decisions affecting current work:
 - Phase 2 Plan 1: Signup 400 "Email already registered" IS intentional (UI-SPEC accepts enumeration on signup). Login always returns identical 401 (T-02-ENUM). COOKIE_SECURE=false in dev (Pitfall 3). clearCookie options must match setAuthCookie options or browser won't clear.
 - Phase 2 Plan 2: requireAuth mounted at router level in app.js (not per-route). File IDOR returns 404 not 403 (no existence leak). ObjectId cast required in aggregate $match. AuthProvider inside BrowserRouter so screens can use react-router Link/Navigate.
 - Phase 2 Plan 3: Email adapter defaults to Resend (smtp.js is a documented stub). Rate limiter on /forgot-password is stricter than /login (5 vs 10/15min). sendEmail in route wrapped in try/catch — mail failure does NOT affect 200 response. ResetPasswordScreen treats missing-token-in-URL and server-400 as the same expired state.
+- [Phase 03-exif-auto-placement-pins]: Server isoCode.js replaced with SU_A3 chain — ISO_A2 produced wrong keys for all 301 GeoJSON features
+- [Phase 03-exif-auto-placement-pins]: GPS read from rawBuffer pre-ingest (D-01): extractGps order is multer → magic-byte → extractGps → ingestPhoto
 
 ### Pending Todos
 
@@ -90,6 +93,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-21T16:54:02.163Z
-Stopped at: Phase 3 context gathered
+Last session: 2026-06-22T08:20:23.799Z
+Stopped at: Completed 03-01-PLAN.md
 Resume file: .planning/phases/03-exif-auto-placement-pins/03-CONTEXT.md
