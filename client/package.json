@@ -17,6 +17,8 @@
     "react-leaflet": "^5.0.0",
     "react-photo-album": "^3.6.0",
     "react-router-dom": "^7.18.0",
+    "supercluster": "^8.0.1",
+    "use-supercluster": "^1.2.0",
     "yet-another-react-lightbox": "^3.32.0"
   },
   "devDependencies": {
