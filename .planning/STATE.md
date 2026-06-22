@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: checkpoint
-stopped_at: 03-02-PLAN.md Task 3 (human-verify checkpoint)
-last_updated: "2026-06-22T08:27:21Z"
-last_activity: 2026-06-22 -- Phase 03 Plan 02 paused at human-verify checkpoint
+status: phase_complete
+stopped_at: Phase 3 complete & verified (4/4 criteria). Next is Phase 4.
+last_updated: "2026-06-22T09:00:00Z"
+last_activity: 2026-06-22 -- Phase 03 complete: human-verify approved, verifier 4/4, geojson rebuilt smooth
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
-  percent: 50
+  completed_plans: 7
+  percent: 75
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-17)
 
 **Core value:** Browse your travels on a world map organized by the countries you've visited — click a country to add and view its photos — with photos auto-placing by GPS over time.
-**Current focus:** Phase 03 — exif-auto-placement-pins
+**Current focus:** Phase 4 — places-editing-polish (next)
 
 ## Current Position
 
-Phase: 03 (exif-auto-placement-pins) — CHECKPOINT
-Plan: 2 of 2
-Status: Awaiting human verification (Task 3)
-Last activity: 2026-06-22 -- Phase 03 Plan 02 paused at human-verify checkpoint
+Phase: 03 (exif-auto-placement-pins) — COMPLETE & VERIFIED
+Plan: 2 of 2 complete; human-verify approved 2026-06-22
+Status: Phase 3 done (verifier 4/4). Next: Phase 4 (Places, Editing & Polish).
+Last activity: 2026-06-22 -- Phase 03 complete: pins/clustering, GPS auto-placement, smooth geojson
 
-Progress: [#####░░░░░] 50% (Phase 2 complete)
+Progress: [#######░░░] 75% (Phase 3 complete)
 
 ## Performance Metrics
 

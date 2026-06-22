@@ -19,7 +19,7 @@ deletion, upload progress, and mobile polish.
 
 - [x] **Phase 1: Country Map & Per-Country Photos** - Interactive country-boundary map; click a country to upload and view its photos (no accounts) (completed 2026-06-19)
 - [x] **Phase 2: Accounts & Private Maps** - Sign up/login/logout, per-user data isolation, migrate to private maps (completed 2026-06-21)
-- [ ] **Phase 3: EXIF Auto-Placement & Pins** - Read GPS on upload, auto-assign country, pins inside countries with clustering
+- [x] **Phase 3: EXIF Auto-Placement & Pins** - Read GPS on upload, auto-assign country, pins inside countries with clustering (completed 2026-06-22)
 - [ ] **Phase 4: Places, Editing & Polish** - Reverse-geocoded cities, edit/move, delete, upload progress, mobile polish
 
 ## Phase Details
@@ -123,5 +123,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Country Map & Per-Country Photos | 2/2 | Complete   | 2026-06-19 |
 | 2. Accounts & Private Maps | 3/3 | Complete   | 2026-06-21 |
-| 3. EXIF Auto-Placement & Pins | 1/2 | In Progress|  |
+| 3. EXIF Auto-Placement & Pins | 2/2 | Complete   | 2026-06-22 |
 | 4. Places, Editing & Polish | 0/TBD | Not started | - |
