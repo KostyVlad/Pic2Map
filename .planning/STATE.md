@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-06-22T08:20:23.813Z"
-last_activity: 2026-06-22 -- Phase 03 execution started
+status: checkpoint
+stopped_at: 03-02-PLAN.md Task 3 (human-verify checkpoint)
+last_updated: "2026-06-22T08:27:21Z"
+last_activity: 2026-06-22 -- Phase 03 Plan 02 paused at human-verify checkpoint
 progress:
   total_phases: 4
   completed_phases: 2
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-06-17)
 
 ## Current Position
 
-Phase: 03 (exif-auto-placement-pins) — EXECUTING
+Phase: 03 (exif-auto-placement-pins) — CHECKPOINT
 Plan: 2 of 2
-Status: Ready to execute
-Last activity: 2026-06-22 -- Phase 03 execution started
+Status: Awaiting human verification (Task 3)
+Last activity: 2026-06-22 -- Phase 03 Plan 02 paused at human-verify checkpoint
 
 Progress: [#####░░░░░] 50% (Phase 2 complete)
 
@@ -73,6 +73,8 @@ Recent decisions affecting current work:
 - Phase 2 Plan 3: Email adapter defaults to Resend (smtp.js is a documented stub). Rate limiter on /forgot-password is stricter than /login (5 vs 10/15min). sendEmail in route wrapped in try/catch — mail failure does NOT affect 200 response. ResetPasswordScreen treats missing-token-in-URL and server-400 as the same expired state.
 - [Phase 03-exif-auto-placement-pins]: Server isoCode.js replaced with SU_A3 chain — ISO_A2 produced wrong keys for all 301 GeoJSON features
 - [Phase 03-exif-auto-placement-pins]: GPS read from rawBuffer pre-ingest (D-01): extractGps order is multer → magic-byte → extractGps → ingestPhoto
+- [Phase 03-02-pins-clustering]: Dual YARL lightbox: PhotoGallery keeps own lightbox (with delete); CountrySidebar adds view-only lightbox for pin popup clicks — no PhotoGallery surgery
+- [Phase 03-02-pins-clustering]: deriveFeatureBbox walks GeoJSON polygon rings inline in WorldMap for CountryPinMap fitBounds
 
 ### Pending Todos
 
@@ -93,6 +95,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-22T08:20:23.799Z
-Stopped at: Completed 03-01-PLAN.md
-Resume file: .planning/phases/03-exif-auto-placement-pins/03-CONTEXT.md
+Last session: 2026-06-22T08:27:21Z
+Stopped at: 03-02-PLAN.md Task 3 checkpoint:human-verify
+Resume file: .planning/phases/03-exif-auto-placement-pins/03-02-PLAN.md
